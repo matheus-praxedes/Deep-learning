@@ -1,11 +1,10 @@
 import numpy as np
 
 class Perceptron:
-	"""docstring for ClassName"""
 	
-	def __init__(self, number_input, activation_function, derived_function):
+	def __init__(self, input_count, activation_function, derived_function):
 		
-		self.weight_list = np.random.random_sample(number_input+1)
+		self.weight_list = np.random.random_sample(input_count+1)
 		self.old_weight_list = []
 		self.input_list = []
 		
@@ -45,8 +44,33 @@ class Perceptron:
 		self.old_weight_list = self.weight_list
 		self.weight_list = np.sum(self.weight_list, np.multply(learning_rate*self.local_gradient, self.input_list))  
 
+class Layer:
+	
+	def __init__(self, neuron_count, input_count, activation_function, derived_function):
+		
+		self.perceptron_list = [Perceptron(input_count, activation_function, derived_function) for i in range(0, neuron_count)]
+		
+	def getOutput(self):
+		
+		output_list = [n.getOutput() for n in self.perceptron_list]
+		return output_list
 
+	def process(self, signal_list):
+		
+		for i in self.perceptron_list:
+			i.process(signal_list)
 
+	def getSum(self, index_j):
+
+		temp = [n.getLocalGradient()*n.getWeight(index_j) for n in self.perceptron_list]
+
+		return np.sum(temp)
+
+class NeuralNetwork:
+	
+	def __init__(self, layer_size_list, activation_function_list, derived_function_list):
+
+		self.layer_list = [Layer(layer_size_list[i], layer_size_list[i-1], activation_function_list[i], derived_function_list[i]) for i in range(1, len(layer_size_list))]
 
 
 def relu(x):
@@ -59,8 +83,11 @@ def derived_relu():
 		return 1.0
 	else:
 		return 0.0	
- 		
 
+'''
+Perceptron	
+'''
+'''
 input_test = [10.0, 8.0, 25.0]
 test = Perceptron(3, relu, derived_relu)
 test.process(input_test)
@@ -75,3 +102,10 @@ soma += test.getWeight(0)
 
 print("Soma: ", soma)
 print("Output: ", test.getOutput())
+'''
+
+test = Layer(5, 3, relu, derived_relu)
+input_test = [10.0, 8.0, 25.0]
+test.process(input_test)
+
+print(test.getSum(2))

@@ -5,9 +5,9 @@ class Perceptron:
 	
 	def __init__(self, number_input, activation_function, derived_function):
 		
-		self.weight_list = np.random.random_sample(number_input)
+		self.weight_list = np.random.random_sample(number_input+1)
 		self.old_weight_list = []
-		self.input_test = []
+		self.input_list = []
 		
 		self.activation_function = activation_function
 		self.derived_function = derived_function
@@ -17,33 +17,33 @@ class Perceptron:
 	
 	def getOutput(self):
 		
-		return output
+		return self.output
 
 	def process(self, input_list):
 		
 		input_list = [1.0] + input_list 
 		self.input_list = input_list
-		mul = np.multiply(input_list, weight_list)
-		v = np.sum(mul)
+		mul = np.multiply(input_list, self.weight_list)
+		self.v = np.sum(mul)
 
-		output = activation_function(v)
+		self.output = self.activation_function(self.v)
 
 	def getWeight(self, index):
 		
-		return weight_list[index]
+		return self.weight_list[index]
 
 	def getLocalGradient(self):
 		
-		return local_gradient
+		return self.local_gradient
 	
 	def updateLocalGradient(self, sum):
 		
-		return derived_function(v)*sum
+		return self.derived_function(v)*sum
 
 	def weightAdjustment(self, learning_rate):
 		
-		old_weight_list = weight_list
-		weight_list = np.sum(weight_list, np.multply(learning_rate*local_gradient, input_list))  
+		self.old_weight_list = self.weight_list
+		self.weight_list = np.sum(self.weight_list, np.multply(learning_rate*self.local_gradient, self.input_list))  
 
 
 
@@ -65,8 +65,13 @@ input_test = [10.0, 8.0, 25.0]
 test = Perceptron(3, relu, derived_relu)
 test.process(input_test)
 
+soma = 0.0
+
 for x in range(0,3):
-    print ("input", input_test[x], "weight", test.getWeight(x))
+    print ("input", input_test[x], "weight", test.getWeight(x+1), "product", input_test[x]*test.getWeight(x+1))
+    soma += input_test[x]*test.getWeight(x+1)
 
+soma += test.getWeight(0)
 
-print("Output: ",test.getOutput())
+print("Soma: ", soma)
+print("Output: ", test.getOutput())

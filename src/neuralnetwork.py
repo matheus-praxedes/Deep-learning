@@ -35,14 +35,14 @@ class Perceptron:
 		self.v = np.sum(mul)
 		self.output = self.activation_function.getFunction()(self.v)
 
-	def getWeight(self, index):
-		return self.weight_list[index]
-
 	def getLocalGradient(self):
 		return self.local_gradient
 	
 	def updateLocalGradient(self, sum):
-		return self.activation_function.getDerivate()(self.v)*sum
+		self.local_gradient = self.activation_function.getDerivate()(self.v)*sum
+
+	def getWeight(self, index):
+		return self.weight_list[index]
 
 	def weightAdjustment(self, learning_rate):
 		self.weight_list = [ i+j for i,j in zip(self.weight_list, np.multiply(learning_rate*self.local_gradient, self.input_list))] 
@@ -170,7 +170,7 @@ relu_func = ActivationFunction(relu, derived_relu)
 sig_func = ActivationFunction(sig, derived_sig)
 
 data_set_1 = []
-for i in range(0, 1000):
+for i in range(0, 1):
 	x1 = np.round(np.random.random_sample(3))
 	x2 = np.random.random_sample(3) * 0.2 - 0.1
 	x = [i+j for i,j in zip(x1,x2)]
@@ -188,7 +188,11 @@ for i in range(0, 1000):
 	
 
 
-net = NeuralNetwork(3, [8], [sig_func], 0.01)
+net = NeuralNetwork(3, [8], [sig_func], 0.1)
 
-for obj in data_set_1:
-	net.train(obj.input, obj.expected_output)
+for i in range(0, 1000):
+	for obj in data_set_1:
+		net.train(obj.input, obj.expected_output)
+
+print(net.classify(data_set_1[0].input))
+print(data_set_1[0].expected_output)

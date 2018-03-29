@@ -94,7 +94,8 @@ class NeuralNetwork:
 		self.layer_list = [Layer(layer_size_list[i], layer_size_list[i-1], activation_function_list[i]) for i in range(1, len(layer_size_list))]
 		self.layer_list = [Layer(layer_size_list[0], input_size, activation_function_list[0])] + self.layer_list
 		self.layer_size_list = layer_size_list
-		self.error = []
+		self.error = 0.0
+		self.MSE_count = 0
 		self.learning_rate = learning_rate
 		self.momentum = momentum
 		self.last_input = []
@@ -118,17 +119,22 @@ class NeuralNetwork:
 		
 
 	def getOutputError(self, expected_output):
-		
 		return np.subtract(expected_output, self.output)
 
 	def getInstantError(self, expected_output):
-		
-		x = getOutputError(expected_output) 		
-
+		x = self.getOutputError(expected_output) 		
 		mul = np.multiply(x, x)
-		soma = np.sum(mul)
+		soma = 0.5 * np.sum(mul)
+		self.error += soma
+		self.MSE_count += 1
+		return soma
 
-		return 0.5*soma
+	def getMSE(self):
+		return self.error / self.MSE_count
+
+	def resetMSE(self):
+		self.error = 0.0
+		self.MSE_count = 0
 
 	def backpropagation(self, output_error):
 		num_layers = len(self.layer_size_list)
@@ -205,8 +211,6 @@ validation_set_size = 100
 test_set_size = 100
 sig_func = ActivationFunction(sig, derived_sig)
 
-
-
 #Building training set
 data_set = []
 for i in range(0, data_set_size):
@@ -225,22 +229,26 @@ net = NeuralNetwork(3, [8], [sig_func], 0.1)
 
 #Training the Neural Network
 for i in range(0, epoch_number):
+
+	print("\r", i+1, "/", epoch_number, end = '')
+
+	net.resetMSE()
 	
-	for obj in data_set[0:training_set_size]:
+	for obj in data_set[0 : training_set_size]:
 		net.train(obj.input, obj.expected_output)
-		print("\rInstant error - training: ", net.getInstantError(obj.expected_output), end = '')
+		#print("\r", i, "/", epoch_number, " | Instant error - training: ", net.getInstantError(obj.expected_output), end = '')
+		net.getInstantError(obj.expected_output)
 
-	for obj in data_set[training_set_size:validation_set_size]:
+	print("\t MSE - training: ", net.getMSE(), end = '')
+
+	net.resetMSE()
+
+	for obj in data_set[training_set_size : training_set_size+validation_set_size]:
 		net.classify(obj.input)
-		print("\rInstant error - classify: ", net.getInstantError(obj.expected_output), end = '')
+		#print("\r", i, "/", epoch_number, " | Instant error - classify: ", net.getInstantError(obj.expected_output), end = '')	
+		net.getInstantError(obj.expected_output)
 
-	print("\r", i, end = '')	
-
-
-
-
-#print(net.classify(data_set_1[0].input))
-#print(data_set_1[0].expected_output)
+	print("\t|   MSE - classify: ", net.getMSE(), end = '')
 
 ############################################################################
 ############################################################################

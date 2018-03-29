@@ -203,7 +203,7 @@ def derived_degrau(x):
 #	Running Neural Network
 ############################################################################
 
-
+#Parameters
 data_set_size = 1000
 epoch_number  = 1000
 training_set_size = 800
@@ -249,6 +249,8 @@ for i in range(0, epoch_number):
 		net.getInstantError(obj.expected_output)
 
 	print("\t|   MSE - classify: ", net.getMSE(), end = '')
+
+print()	
 
 ############################################################################
 ############################################################################

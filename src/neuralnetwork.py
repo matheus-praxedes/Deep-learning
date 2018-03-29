@@ -1,5 +1,9 @@
 import numpy as np
 
+############################################################################
+#	Neural Network
+############################################################################
+
 class ActivationFunction:
 
 	def __init__(self, function, derivate):
@@ -84,7 +88,6 @@ class Layer:
 
 ###########################################################
 
-
 class NeuralNetwork:
 	
 	def __init__(self, input_size, layer_size_list, activation_function_list, learning_rate = 0.1, momentum = 0.0):
@@ -108,15 +111,24 @@ class NeuralNetwork:
 		self.output = signal
 		return signal
 
-	def train(self, input_signal, correct_output):
-		self.updateOutputError(input_signal, correct_output)
-		self.backpropagation(self.error)
+	def train(self, input_signal, expected_output):
+		self.classify(input_signal)
+		error = self.getOutputError(expected_output)
+		self.backpropagation(error)
 		
 
-	def updateOutputError(self, input_signal, correct_output):
-		output = self.classify(input_signal)
-		self.error = np.subtract(correct_output, output)
+	def getOutputError(self, expected_output):
+		
+		return np.subtract(expected_output, self.output)
 
+	def getInstantError(self, expected_output):
+		
+		x = getOutputError(expected_output) 		
+
+		mul = np.multiply(x, x)
+		soma = np.sum(mul)
+
+		return 0.5*soma
 
 	def backpropagation(self, output_error):
 		num_layers = len(self.layer_size_list)
@@ -146,29 +158,58 @@ class NeuralNetwork:
 		print( )
 
 
+###########################################################
+
 class Instance:
 	def __init__(self, input, expected_output = []):
 		self.input = input
 		self.expected_output = expected_output
 
+############################################################################
+############################################################################
+
+############################################################################
+#	Auxiliary Functions
+############################################################################
 
 def relu(x):
 	return np.fmax(0.0, x)		
 
 def derived_relu(x):
-	return 0.0 if x < 0 else 1.0	
+	return 0.0 if x < 0.0 else 1.0	
 
 def sig(x):
-	return 1 / ( 1 + np.exp(-x))		
+	return 1.0 / ( 1.0 + np.exp(-x))		
 
 def derived_sig(x):
-	return sig(x) * (1 - sig(x))
+	return sig(x) * (1.0 - sig(x))
 
-relu_func = ActivationFunction(relu, derived_relu)
+def degrau(x):
+	return 1.0 if x>= 0.0 else 0.0	
+
+def derived_degrau(x):
+	pass
+
+############################################################################
+############################################################################
+
+############################################################################
+#	Running Neural Network
+############################################################################
+
+
+data_set_size = 1000
+epoch_number  = 1000
+training_set_size = 800
+validation_set_size = 100
+test_set_size = 100
 sig_func = ActivationFunction(sig, derived_sig)
 
-data_set_1 = []
-for i in range(0, 1):
+
+
+#Building training set
+data_set = []
+for i in range(0, data_set_size):
 	x1 = np.round(np.random.random_sample(3))
 	x2 = np.random.random_sample(3) * 0.2 - 0.1
 	x = [i+j for i,j in zip(x1,x2)]
@@ -177,20 +218,29 @@ for i in range(0, 1):
 	y = [0.0 for k in range(0,8)]
 	y[n] = 1.0
 
-	data_set_1.append( Instance(x, y) )
+	data_set.append( Instance(x, y) )
 
-	#formatted_list = ["%.3f"%item for item in x]
-	#print(formatted_list)
-	#print(y)
-	#print( )
-	
-
-
+#Creating the Neural Network
 net = NeuralNetwork(3, [8], [sig_func], 0.1)
 
-for i in range(0, 1000):
-	for obj in data_set_1:
+#Training the Neural Network
+for i in range(0, epoch_number):
+	
+	for obj in data_set[0:training_set_size]:
 		net.train(obj.input, obj.expected_output)
+		print("\rInstant error - training: ", net.getInstantError(obj.expected_output), end = '')
 
-print(net.classify(data_set_1[0].input))
-print(data_set_1[0].expected_output)
+	for obj in data_set[training_set_size:validation_set_size]:
+		net.classify(obj.input)
+		print("\rInstant error - classify: ", net.getInstantError(obj.expected_output), end = '')
+
+	print("\r", i, end = '')	
+
+
+
+
+#print(net.classify(data_set_1[0].input))
+#print(data_set_1[0].expected_output)
+
+############################################################################
+############################################################################

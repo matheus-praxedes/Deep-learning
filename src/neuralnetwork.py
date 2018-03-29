@@ -111,9 +111,7 @@ class NeuralNetwork:
 	def train(self, input_signal, correct_output):
 		self.updateOutputError(input_signal, correct_output)
 		self.backpropagation(self.error)
-
-		self.print()
-
+		
 
 	def updateOutputError(self, input_signal, correct_output):
 		output = self.classify(input_signal)

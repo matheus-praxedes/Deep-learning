@@ -3,23 +3,9 @@ from data import Instance
 from neural_network import NeuralNetwork
 from activation_function import ActivationFunction
 
-############################################################################
-#	Auxiliary Functions
-############################################################################
 
-############################################################################
-#	Running Neural Network
-############################################################################
-
-#Parameters
+#Building data set
 data_set_size = 1000
-epoch_number  = 1000
-training_set_size = 800
-validation_set_size = 100
-test_set_size = 100
-sig_func = ActivationFunction("sigmoid")
-
-#Building training set
 data_set = []
 for i in range(0, data_set_size):
 	x1 = np.round(np.random.random_sample(3))
@@ -31,6 +17,17 @@ for i in range(0, data_set_size):
 	y[n] = 1.0
 
 	data_set.append( Instance(x, y) )
+
+############################################################################
+#	Running Neural Network
+############################################################################
+
+#Parameters
+epoch_number  = 1000
+training_set_size = 800
+validation_set_size = 100
+test_set_size = 100
+sig_func = ActivationFunction("sigmoid")
 
 #Creating the Neural Network
 net = NeuralNetwork(3, [8], [sig_func], 0.1)

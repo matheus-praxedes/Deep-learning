@@ -48,7 +48,6 @@ class NeuralNetwork:
 		
 		self.learning_rate = learning_rate
 		self.momentum = momentum
-		mse_error = 0.0
 
 		tvt_sum = np.sum(tvt_ratio)
 		data_set_size = data_set.size()
@@ -56,129 +55,40 @@ class NeuralNetwork:
 		validation_set_size = int(data_set_size * tvt_ratio[1] / tvt_sum)
 		test_set_size = int(data_set_size * tvt_ratio[2] / tvt_sum)
 
-		if(training_type == "estochastic"):
-			for epoch in range(num_epoch):
 
-				error = 0
-				if(print_info):
+
+
+		for epoch in range(num_epoch):
+
+			error = 0.0
+			data_set.reorderElements(training_set_size)
+
+			if(print_info):
 					print("\r|| Epoch: {:d} || ".format(epoch+1), end = '')
-				
-				#######################################################################
-				####################### Training Time #################################
-				#######################################################################
-				data_set.reorderElements(training_set_size)
+
+			if(training_type == "estochastic"):
+
+				# TRAINING
 				for obj in data_set.data()[0 : training_set_size]:
 					self.classify(obj.input)
-					error = self.getOutputError(obj.expected_output)
-					self.backpropagation(error)
+					feedback = self.getOutputError(obj.expected_output)
+					self.backpropagation(feedback)
 
-				#######################################################################
-				####################### Training Info #################################
-				#######################################################################
-					mse_error += self.getInstantError(obj.expected_output)
-				mse_error /= training_set_size
-				if(print_info):
-					print("Training Error: {:.5f} || ".format(mse_error), end = '')
-				mse_error = 0.0
+					error += self.getInstantError(obj.expected_output)
+				error /= training_set_size
 
-				#######################################################################
-				####################### Validation Time ###############################
-				#######################################################################
-				for obj in data_set.data()[training_set_size : training_set_size+validation_set_size]:
-					self.classify(obj.input)
+			elif(training_type == "batch"):
 
-				#######################################################################
-				####################### Validation Info ###############################
-				#######################################################################
-					mse_error += self.getInstantError(obj.expected_output)
-				mse_error /= validation_set_size
-				if(print_info):
-					print("Validation Error: {:.5f} || ".format(mse_error), end = '')
-				mse_error = 0.0
-
-			############################################################################
-			############################# Testing Time #################################
-			############################################################################
-			for obj in data_set.data()[training_set_size+validation_set_size : data_set_size]:
-				self.classify(obj.input)
-
-			############################################################################
-			############################# Testing Info #################################
-			############################################################################
-				mse_error += self.getInstantError(obj.expected_output)
-			mse_error /= test_set_size
-			if(print_info):
-				print("\nTesting Error: {:.5f}\n".format(mse_error), end = '')
-			mse_error = 0.0
-			############################################################################
-
-
-		elif(training_type == "batch"):
-			for epoch in range(num_epoch):
-
-				error = 0
-				if(print_info):
-					print("\r|| Epoch: {:d} || ".format(epoch+1), end = '')
-				
-				#######################################################################
-				####################### Training Time #################################
-				#######################################################################
-				data_set.reorderElements(training_set_size)
+				# TRAINING
 				for obj in data_set.data()[0 : training_set_size]:
 					self.classify(obj.input)
 					error += self.getInstantError(obj.expected_output)
 				error /= training_set_size
 				self.backpropagation( len(self.output) * [-error] )
 
-				#######################################################################
-				####################### Training Info #################################
-				#######################################################################
-				if(print_info):
-					print("Training Error: {:.5f} || ".format(error), end = '')
-				error = 0.0		
+			elif(training_type == "mini-batch"):
 
-				#######################################################################
-				####################### Validation Time ###############################
-				#######################################################################
-				for obj in data_set.data()[training_set_size : training_set_size+validation_set_size]:
-					self.classify(obj.input)
-
-				#######################################################################
-				####################### Validation Info ###############################
-				#######################################################################
-					error += self.getInstantError(obj.expected_output)
-				error /= validation_set_size
-				if(print_info):
-					print("Validation Error: {:.5f} || ".format(error), end = '')
-				error = 0.0	
-
-			############################################################################
-			############################# Testing Time #################################
-			############################################################################
-			for obj in data_set.data()[training_set_size+validation_set_size : data_set_size]:
-				self.classify(obj.input)
-
-			############################################################################
-			############################# Testing Info #################################
-			############################################################################
-				error += self.getInstantError(obj.expected_output)
-			error /= test_set_size
-			if(print_info):
-				print("\nTest Error: {:.5f} || ".format(error), end = '')
-			error = 0.0	
-
-			###########################################################################
-
-
-		elif(training_type == "mini-batch"):
-			for epoch in range(num_epoch):
-
-				error = 0
-				
-				#######################################################################
-				####################### Training Time #################################
-				#######################################################################
-				data_set.reorderElements(training_set_size)
+				# TRAINING
 				for batch in range(training_set_size // mini_batch_size):
 					error = 0
 					for obj in data_set.data()[mini_batch_size*batch : mini_batch_size*(batch+1)]:
@@ -187,39 +97,26 @@ class NeuralNetwork:
 					error /= mini_batch_size
 					self.backpropagation( len(self.output) * [-error] )
 
-				#######################################################################
-				####################### Training Info #################################
-				#######################################################################
-				if(print_info):
-					print("\r|| Epoch: {:d} || Training Error: {:.5f} || ".format(epoch+1, error), end = '')
-				error = 0.0	
-
-				#######################################################################
-				####################### Validation Time ###############################
-				#######################################################################
-				for obj in data_set.data()[training_set_size : training_set_size+validation_set_size]:
-					self.classify(obj.input)
-
-				#######################################################################
-				####################### Validation Info ###############################
-				#######################################################################
-					error += self.getInstantError(obj.expected_output)
-				error /= validation_set_size
-				if(print_info):
-					print("Validation Error: {:.5f} || ".format(error), end = '')
-				error = 0.0	
-
-			############################################################################
-			############################# Testing Time #################################
-			############################################################################
-			for obj in data_set.data()[training_set_size+validation_set_size : data_set_size]:
-				self.classify(obj.input)
-
-			############################################################################
-			############################# Testing Info #################################
-			############################################################################
-				error += self.getInstantError(obj.expected_output)
-			error /= test_set_size
+			
 			if(print_info):
-				print("\nTest Error: {:.5f} || ".format(error), end = '')
-			error = 0.0		
+					print("Training Error: {:.5f} || ".format(error), end = '')
+
+			# VALIDATION
+			error = 0.0
+			for obj in data_set.data()[training_set_size : training_set_size+validation_set_size]:
+				self.classify(obj.input)
+				error += self.getInstantError(obj.expected_output)
+			error /= validation_set_size
+			if(print_info):
+				print("Validation Error: {:.5f} || ".format(error), end = '')
+
+		# TESTING
+		error = 0.0
+		for obj in data_set.data()[training_set_size+validation_set_size : data_set_size]:
+			self.classify(obj.input)
+			error += self.getInstantError(obj.expected_output)
+		error /= test_set_size
+
+		if(print_info):
+			print("\nTest Error: {:.5f} || ".format(error), end = '')
+		error = 0.0		

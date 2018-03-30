@@ -55,31 +55,22 @@ class NeuralNetwork:
 		validation_set_size = int(data_set_size * tvt_ratio[1] / tvt_sum)
 		test_set_size = int(data_set_size * tvt_ratio[2] / tvt_sum)
 
-
-
-
 		for epoch in range(num_epoch):
 
+			print("\r|| Epoch: {:d} || ".format(epoch+1), end = '') if print_info else 0
 			error = 0.0
 			data_set.reorderElements(training_set_size)
-
-			if(print_info):
-					print("\r|| Epoch: {:d} || ".format(epoch+1), end = '')
-
-			if(training_type == "estochastic"):
-
-				# TRAINING
+			
+			# TRAINING #
+			if(training_type == "estochastic"):			
 				for obj in data_set.data()[0 : training_set_size]:
 					self.classify(obj.input)
 					feedback = self.getOutputError(obj.expected_output)
 					self.backpropagation(feedback)
-
 					error += self.getInstantError(obj.expected_output)
 				error /= training_set_size
 
 			elif(training_type == "batch"):
-
-				# TRAINING
 				for obj in data_set.data()[0 : training_set_size]:
 					self.classify(obj.input)
 					error += self.getInstantError(obj.expected_output)
@@ -87,36 +78,28 @@ class NeuralNetwork:
 				self.backpropagation( len(self.output) * [-error] )
 
 			elif(training_type == "mini-batch"):
-
-				# TRAINING
 				for batch in range(training_set_size // mini_batch_size):
-					error = 0
+					error = 0.0
 					for obj in data_set.data()[mini_batch_size*batch : mini_batch_size*(batch+1)]:
 						self.classify(obj.input)
 						error += self.getInstantError(obj.expected_output)
 					error /= mini_batch_size
 					self.backpropagation( len(self.output) * [-error] )
 
-			
-			if(print_info):
-					print("Training Error: {:.5f} || ".format(error), end = '')
+			print("Training Error: {:.5f} || ".format(error), end = '') if print_info else 0
 
-			# VALIDATION
+			# VALIDATION #
 			error = 0.0
 			for obj in data_set.data()[training_set_size : training_set_size+validation_set_size]:
 				self.classify(obj.input)
 				error += self.getInstantError(obj.expected_output)
 			error /= validation_set_size
-			if(print_info):
-				print("Validation Error: {:.5f} || ".format(error), end = '')
+			print("Validation Error: {:.5f} || ".format(error), end = '') if print_info else 0
 
-		# TESTING
+		# TESTING #
 		error = 0.0
 		for obj in data_set.data()[training_set_size+validation_set_size : data_set_size]:
 			self.classify(obj.input)
 			error += self.getInstantError(obj.expected_output)
 		error /= test_set_size
-
-		if(print_info):
-			print("\nTest Error: {:.5f} || ".format(error), end = '')
-		error = 0.0		
+		print("\nTest Error: {:.5f} || ".format(error), end = '') if print_info else 0

@@ -4,7 +4,7 @@ import numpy as np
 class Layer:
 	
 	def __init__(self, neuron_count, input_count, activation_function):
-		self.perceptron_list = [Perceptron(input_count, activation_function) for i in range(0, neuron_count)]
+		self.perceptron_list = [Perceptron(input_count, activation_function) for i in range(neuron_count)]
 		
 	def getOutput(self):
 		output_list = [n.getOutput() for n in self.perceptron_list]
@@ -19,10 +19,10 @@ class Layer:
 		return np.sum(temp)
 
 	def getSums(self):
-		return [self.getSum(i) for i in range(0, len(self.perceptron_list[0].weight_list))]
+		return [self.getSum(i) for i in range(len(self.perceptron_list[0].weight_list))]
 
 	def updateGradients(self, error_list):
-		for neuron, i in zip(self.perceptron_list, range(0, len(self.perceptron_list))):
+		for neuron, i in zip(self.perceptron_list, range(len(self.perceptron_list))):
 			neuron.updateLocalGradient(error_list[i])
 
 	def getGradients(self):

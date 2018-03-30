@@ -4,7 +4,7 @@ from activation_function import ActivationFunction
 class Perceptron:
 	
 	def __init__(self, input_count, activation_function):
-		self.weight_list = np.random.random_sample(input_count+1)
+		self.weight_list = np.random.sample(input_count+1)
 		self.old_weight_list = []
 		self.input_list = []
 		self.activation_function = activation_function

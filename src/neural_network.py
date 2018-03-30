@@ -102,4 +102,4 @@ class NeuralNetwork:
 			self.classify(obj.input)
 			error += self.getInstantError(obj.expected_output)
 		error /= test_set_size
-		print("\nTest Error: {:.5f} || ".format(error), end = '') if print_info else 0
+		print("Test Error: {:.5f} || \n".format(error), end = '') if print_info else 0

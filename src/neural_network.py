@@ -44,6 +44,11 @@ class NeuralNetwork:
 			self.layer_list[layer_id].updateGradients(self.layer_list[layer_id+1].getSums())
 			self.layer_list[layer_id].weightAdjustment(self.learning_rate, self.momentum)
 
+	def correctnessTest(self, expected_output, threshold = 0.5):
+		normalized_output = [1.0 if n > threshold else 0.0 for n in self.output]
+		return normalized_output == expected_output
+
+
 	def trainDataSet(self, data_set, training_type, num_epoch = 0, learning_rate = 0.1, momentum = 0.0, mini_batch_size = 10, tvt_ratio = [9, 1, 1], print_info = False):
 		
 		self.learning_rate = learning_rate
@@ -103,3 +108,16 @@ class NeuralNetwork:
 			error += self.getInstantError(obj.expected_output)
 		error /= test_set_size
 		print("Test Error: {:.5f} || \n".format(error), end = '') if print_info else 0
+
+	def updateConfusionMatrix(self, expected_output, threshold):
+
+		normalized_output = [1.0 if n > threshold else 0.0 for n in self.output]
+
+
+		classification = normalized_output.index(1.0) if 1.0 in normalized_output else 0   
+
+
+		
+
+		expected_classification
+		

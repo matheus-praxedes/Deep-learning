@@ -6,7 +6,7 @@ from activation_function import ActivationFunction
 
 #Building data set 1
 data_set_size_1 = 1000
-data_set_1 = DataSet()
+data_set_1 = DataSet([])
 for i in range(0, data_set_size_1):
 	x1 = np.round(np.random.sample(3))
 	x2 = np.random.sample(3) * 0.2 - 0.1
@@ -19,8 +19,8 @@ for i in range(0, data_set_size_1):
 	data_set_1.add( Instance(x, y) )
 
 #Building data set 4
-data_set_size_4 = 1000
-data_set_4 = DataSet()
+data_set_size_4 = 100
+data_set_4 = DataSet([])
 for i in range(0, data_set_size_4):
 	t = 2 * np.pi * np.random.sample(1)[0]
 	u = np.random.sample(1)[0] + np.random.sample(1)[0]
@@ -38,7 +38,7 @@ for i in range(0, data_set_size_4):
 	y = [0.0 for k in range(0,8)]
 	y[n] = 1.0
 
-	#data_set_4.add( Instance( x, y) )
+	data_set_4.add( Instance( x, y) )
 
 ############################################################################
 #	Running Neural Network

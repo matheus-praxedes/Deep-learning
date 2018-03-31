@@ -11,6 +11,7 @@ class NeuralNetwork:
 		self.momentum = momentum
 		self.last_input = []
 		self.output = []
+		self.confusion_matrix = [[]]
 
 	def classify(self, input_signal):
 		signal = input_signal
@@ -53,6 +54,7 @@ class NeuralNetwork:
 		
 		self.learning_rate = learning_rate
 		self.momentum = momentum
+		self.confusion_matrix = [[0 for x in range(self.layer_size_list[-1])] for y in range(self.layer_size_list[-1])] 
 
 		tvt_sum = np.sum(tvt_ratio)
 		data_set_size = data_set.size()
@@ -106,18 +108,43 @@ class NeuralNetwork:
 		for obj in data_set.data()[training_set_size+validation_set_size : data_set_size]:
 			self.classify(obj.input)
 			error += self.getInstantError(obj.expected_output)
+			self.updateConfusionMatrix(obj.expected_output)
 		error /= test_set_size
 		print("Test Error: {:.5f} || \n".format(error), end = '') if print_info else 0
+		
+		for line in self.confusion_matrix:
+			print("| ", end = '')
+			for value in line:
+				print("{:3d} ".format(value), end = '')
+			print(" |")
 
-	def updateConfusionMatrix(self, expected_output, threshold):
+		print()
+		percent_error = self.getPercentError()
+		print("Correct: {:3.1f}%\nIncorrect: {:3.1f}%".format(percent_error[0], percent_error[1]))
+
+
+	def updateConfusionMatrix(self, expected_output, threshold = 0.5):
 
 		normalized_output = [1.0 if n > threshold else 0.0 for n in self.output]
 
+		if (normalized_output.count(1.0) != 1) :
+			normalized_output[self.output.index(self.output.max())] = 1.0
 
-		classification = normalized_output.index(1.0) if 1.0 in normalized_output else 0   
+		classification = normalized_output.index(1.0)
+		expected_classification = normalized_output.index(1.0)
+
+		self.confusion_matrix[classification][expected_classification] += 1
 
 
-		
+	def getPercentError(self):
+		total = 0
+		correct = 0
+		incorrect = 0
 
-		expected_classification
-		
+		for index_l, line in enumerate(self.confusion_matrix):
+			for index_c, value in enumerate(line):
+				total += value
+				correct += value if index_l == index_c else 0
+				incorrect += 0 if index_l == index_c else value
+
+		return [ 100*correct/total, 100*incorrect/total ]

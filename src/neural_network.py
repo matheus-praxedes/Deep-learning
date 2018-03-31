@@ -38,11 +38,11 @@ class NeuralNetwork:
 		input_layer = 0
 
 		self.layer_list[output_layer].updateGradients(output_error)
-		self.layer_list[output_layer].weightAdjustment(self.learning_rate)
+		self.layer_list[output_layer].weightAdjustment(self.learning_rate, self.momentum)
 
 		for layer_id in range(output_layer-1, input_layer-1, -1):
 			self.layer_list[layer_id].updateGradients(self.layer_list[layer_id+1].getSums())
-			self.layer_list[layer_id].weightAdjustment(self.learning_rate)
+			self.layer_list[layer_id].weightAdjustment(self.learning_rate, self.momentum)
 
 	def trainDataSet(self, data_set, training_type, num_epoch = 0, learning_rate = 0.1, momentum = 0.0, mini_batch_size = 10, tvt_ratio = [9, 1, 1], print_info = False):
 		

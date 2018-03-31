@@ -6,7 +6,7 @@ from activation_function import ActivationFunction
 
 #Building data set 1
 data_set_size_1 = 1000
-data_set_1 = DataSet([])
+data_set_1 = DataSet()
 for i in range(0, data_set_size_1):
 	x1 = np.round(np.random.sample(3))
 	x2 = np.random.sample(3) * 0.2 - 0.1
@@ -20,7 +20,7 @@ for i in range(0, data_set_size_1):
 
 #Building data set 4
 data_set_size_4 = 100
-data_set_4 = DataSet([])
+data_set_4 = DataSet()
 for i in range(0, data_set_size_4):
 	t = 2 * np.pi * np.random.sample(1)[0]
 	u = np.random.sample(1)[0] + np.random.sample(1)[0]
@@ -49,4 +49,4 @@ sig_func = ActivationFunction("sigmoid")
 
 #Creating the Neural Network
 net = NeuralNetwork(3, [8], [sig_func], 0.1)
-net.trainDataSet(data_set_1, "estochastic", 100, print_info = True)
+net.trainDataSet(data_set_1, "estochastic", 100, momentum = 0.5, print_info = True)

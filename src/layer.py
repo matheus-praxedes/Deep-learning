@@ -28,6 +28,6 @@ class Layer:
 	def getGradients(self):
 		return [n.getLocalGradient() for n in self.perceptron_list]
 
-	def weightAdjustment(self, learning_rate):
+	def weightAdjustment(self, learning_rate, momentum):
 		for n in self.perceptron_list:
-			n.weightAdjustment(learning_rate)
+			n.weightAdjustment(learning_rate, momentum)

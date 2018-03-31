@@ -7,8 +7,8 @@ class Instance:
 
 
 class DataSet:
-	def __init__(self, instances):
-		self.instances = instances
+	def __init__(self):
+		self.instances = []
 
 	def size(self):
 		return len(self.instances)

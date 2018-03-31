@@ -128,10 +128,11 @@ class NeuralNetwork:
 		normalized_output = [1.0 if n > threshold else 0.0 for n in self.output]
 
 		if (normalized_output.count(1.0) != 1) :
+			normalized_output = len(self.output)*[0.0]
 			normalized_output[self.output.index(self.output.max())] = 1.0
 
 		classification = normalized_output.index(1.0)
-		expected_classification = normalized_output.index(1.0)
+		expected_classification = expected_output.index(1.0)
 
 		self.confusion_matrix[classification][expected_classification] += 1
 

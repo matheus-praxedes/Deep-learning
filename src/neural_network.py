@@ -45,12 +45,12 @@ class NeuralNetwork:
 			self.layer_list[layer_id].updateGradients(self.layer_list[layer_id+1].getSums())
 			self.layer_list[layer_id].weightAdjustment(self.learning_rate, self.momentum)
 
-	def correctnessTest(self, expected_output, threshold = 0.5):
-		normalized_output = [1.0 if n > threshold else 0.0 for n in self.output]
-		return normalized_output == expected_output
+	def correctnessTest(self, expected_output):
+		# normalized_output = [1.0 if n > threshold else 0.0 for n in self.output]
+		return self.output == expected_output
 
 
-	def trainDataSet(self, data_set, training_type, num_epoch = 0, learning_rate = 0.1, momentum = 0.0, mini_batch_size = 10, tvt_ratio = [9, 1, 1], print_info = False):
+	def trainDataSet(self, data_set, training_type, num_epoch = 0, learning_rate = 0.1, momentum = 0.0, mini_batch_size = 10, tvt_ratio = [8, 1, 1], type = "regression", print_info = False):
 		
 		self.learning_rate = learning_rate
 		self.momentum = momentum
@@ -64,10 +64,11 @@ class NeuralNetwork:
 
 		for epoch in range(num_epoch):
 
-			print("\r|| Epoch: {:d} || ".format(epoch+1), end = '') if print_info else 0
+			print("\n|| Epoch: {:d} || ".format(epoch+1), end = '') if print_info else 0
 			error = 0.0
 			data_set.reorderElements(training_set_size)
-			
+			hinge_error = 0.0
+
 			# TRAINING #
 			if(training_type == "estochastic"):			
 				for obj in data_set.data()[0 : training_set_size]:
@@ -75,13 +76,17 @@ class NeuralNetwork:
 					feedback = self.getOutputError(obj.expected_output)
 					self.backpropagation(feedback)
 					error += self.getInstantError(obj.expected_output)
+					hinge_error += self.hingeLoss(obj.expected_output)
 				error /= training_set_size
+				hinge_error /= training_set_size
 
 			elif(training_type == "batch"):
 				for obj in data_set.data()[0 : training_set_size]:
 					self.classify(obj.input)
 					error += self.getInstantError(obj.expected_output)
+					hinge_error += self.hingeLoss(obj.expected_output)
 				error /= training_set_size
+				hinge_error /= training_set_size
 				self.backpropagation( len(self.output) * [-error] )
 
 			elif(training_type == "mini-batch"):
@@ -90,16 +95,23 @@ class NeuralNetwork:
 					for obj in data_set.data()[mini_batch_size*batch : mini_batch_size*(batch+1)]:
 						self.classify(obj.input)
 						error += self.getInstantError(obj.expected_output)
+						hinge_error += self.hingeLoss(obj.expected_output)
 					error /= mini_batch_size
+					hinge_error /= training_set_size
 					self.backpropagation( len(self.output) * [-error] )
 
+			if(type != "regression"):
+				error = hinge_error
 			print("Training Error: {:.5f} || ".format(error), end = '') if print_info else 0
 
 			# VALIDATION #
 			error = 0.0
 			for obj in data_set.data()[training_set_size : training_set_size+validation_set_size]:
 				self.classify(obj.input)
-				error += self.getInstantError(obj.expected_output)
+				if(type == "regression"):
+					error += self.getInstantError(obj.expected_output)
+				else:
+					error += self.hingeLoss(obj.expected_output)
 			error /= validation_set_size
 			print("Validation Error: {:.5f} || ".format(error), end = '') if print_info else 0
 
@@ -107,31 +119,30 @@ class NeuralNetwork:
 		error = 0.0
 		for obj in data_set.data()[training_set_size+validation_set_size : data_set_size]:
 			self.classify(obj.input)
-			error += self.getInstantError(obj.expected_output)
-			self.updateConfusionMatrix(obj.expected_output)
+			if(type == "regression"):
+				error += self.getInstantError(obj.expected_output)
+			else:
+				error += self.hingeLoss(obj.expected_output)
+				self.updateConfusionMatrix(obj.expected_output)
 		error /= test_set_size
-		print("Test Error: {:.5f} || \n".format(error), end = '') if print_info else 0
+		print("\n|| Test Error: {:.5f} || \n\n".format(error), end = '') if print_info else 0
 		
-		for line in self.confusion_matrix:
-			print("| ", end = '')
-			for value in line:
-				print("{:3d} ".format(value), end = '')
-			print(" |")
+		if(type != "regression"):
+			for line in self.confusion_matrix:
+				print("| ", end = '')
+				for value in line:
+					print("{:3d} ".format(value), end = '')
+				print(" |")
 
-		print()
-		percent_error = self.getPercentError()
-		print("Correct: {:3.1f}%\nIncorrect: {:3.1f}%".format(percent_error[0], percent_error[1]))
+			print()
+			percent_error = self.getPercentError()
+			print("Correct: {:3.1f}%\nIncorrect: {:3.1f}%".format(percent_error[0], percent_error[1]))
 
+	def hingeLoss(self, expected_output):
+		return np.maximum(0.0, 1.0 - np.dot(self.output, expected_output))
 
-	def updateConfusionMatrix(self, expected_output, threshold = 0.5):
-
-		normalized_output = [1.0 if n > threshold else 0.0 for n in self.output]
-
-		if (normalized_output.count(1.0) != 1) :
-			normalized_output = len(self.output)*[0.0]
-			normalized_output[self.output.index(max(self.output))] = 1.0
-
-		classification = normalized_output.index(1.0)
+	def updateConfusionMatrix(self, expected_output):
+		classification = self.output.index(1.0)
 		expected_classification = expected_output.index(1.0)
 
 		self.confusion_matrix[classification][expected_classification] += 1

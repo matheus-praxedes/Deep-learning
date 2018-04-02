@@ -36,7 +36,7 @@ def derived_sig(x):
 	return sig(x) * (1.0 - sig(x))
 
 def step(x):
-	return 1.0 if x>= 0.0 else 0.0	
+	return 1.0 if x >= 0.0 else 0.0	
 
 def derived_step(x):
-	return 0.0
+	return 1.0

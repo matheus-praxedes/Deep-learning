@@ -13,7 +13,7 @@ if (os.path.isfile(data_set_1.name)):
 	data_set_1.loadFile()
 
 else:
-	data_set_size_1 = 10
+	data_set_size_1 = 1000
 	for i in range(0, data_set_size_1):
 		x1 = np.round(np.random.sample(3))
 		x2 = np.random.sample(3) * 0.2 - 0.1
@@ -59,7 +59,7 @@ else:
 
 	data_set_4.saveToFile()
 
-data_set_4.printInstances()
+#data_set_4.printInstances()
 	
 ############################################################################
 #	Running Neural Network
@@ -67,7 +67,8 @@ data_set_4.printInstances()
 
 #Parameters
 sig_func = ActivationFunction("sigmoid")
+step_func = ActivationFunction("step")
 
 #Creating the Neural Network
-net = NeuralNetwork(3, [8], [sig_func], 0.1)
-#net.trainDataSet(data_set_1, "estochastic", 100, momentum = 0.5, print_info = True)
+net = NeuralNetwork(3, [8], [step_func], 0.1)
+net.trainDataSet(data_set_1, "estochastic", 10, momentum = 0.5, print_info = True, type = "class")

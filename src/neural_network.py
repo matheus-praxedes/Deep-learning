@@ -54,7 +54,10 @@ class NeuralNetwork:
 		
 		self.learning_rate = learning_rate
 		self.momentum = momentum
-		self.confusion_matrix = [[0 for x in range(self.layer_size_list[-1])] for y in range(self.layer_size_list[-1])] 
+		self.confusion_matrix = [[0 for x in range(self.layer_size_list[-1])] for y in range(self.layer_size_list[-1])]
+		y_axis_train = []
+		y_axis_valid = []
+		x_axis_epoch = []
 
 		tvt_sum = np.sum(tvt_ratio)
 		data_set_size = data_set.size()
@@ -64,7 +67,7 @@ class NeuralNetwork:
 
 		for epoch in range(num_epoch):
 
-			print("\n|| Epoch: {:d} || ".format(epoch+1), end = '') if print_info else 0
+			print("\r|| Epoch: {:d} || ".format(epoch+1), end = '')
 			error = 0.0
 			data_set.reorderElements(training_set_size)
 			hinge_error = 0.0
@@ -103,6 +106,8 @@ class NeuralNetwork:
 			if(type != "regression"):
 				error = hinge_error
 			print("Training Error: {:.5f} || ".format(error), end = '') if print_info else 0
+			x_axis_epoch.append(epoch)
+			y_axis_train.append(error)
 
 			# VALIDATION #
 			error = 0.0
@@ -114,6 +119,7 @@ class NeuralNetwork:
 					error += self.hingeLoss(obj.expected_output)
 			error /= validation_set_size
 			print("Validation Error: {:.5f} || ".format(error), end = '') if print_info else 0
+			y_axis_valid.append(error)
 
 		# TESTING #
 		error = 0.0
@@ -127,7 +133,7 @@ class NeuralNetwork:
 		error /= test_set_size
 		print("\n|| Test Error: {:.5f} || \n\n".format(error), end = '') if print_info else 0
 		
-		if(type != "regression"):
+		if(type != "regression" and print_info):
 			for line in self.confusion_matrix:
 				print("| ", end = '')
 				for value in line:
@@ -138,11 +144,13 @@ class NeuralNetwork:
 			percent_error = self.getPercentError()
 			print("Correct: {:3.1f}%\nIncorrect: {:3.1f}%".format(percent_error[0], percent_error[1]))
 
+		return [x_axis_epoch, y_axis_train, y_axis_valid]
+
 	def hingeLoss(self, expected_output):
-		return np.maximum(0.0, 1.0 - np.dot(self.output, expected_output))
+		return 0.0 if self.output == expected_output else 1.0
 
 	def updateConfusionMatrix(self, expected_output):
-		classification = self.output.index(1.0)
+		classification = self.output.index(1.0) if 1.0 in self.output else np.random.randint(0, len(expected_output))
 		expected_classification = expected_output.index(1.0)
 
 		self.confusion_matrix[classification][expected_classification] += 1

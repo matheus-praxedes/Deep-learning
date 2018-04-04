@@ -137,7 +137,8 @@ class NeuralNetwork:
 		print("\n|| Test Error: {:.5f} || \n\n".format(error), end = '') if print_info else 0
 		
 		# Only Classification Info
-		if(type != "regression" and print_info):
+		if(type != "regression"):
+			print()
 			for line in self.confusion_matrix:
 				print("| ", end = '')
 				for value in line:

@@ -2,6 +2,5 @@
 .ipynb_checkpoints/*
 __pychache__/*
 c/*
-data_set_1
-data_set_4
+data_set_*
 *.txt

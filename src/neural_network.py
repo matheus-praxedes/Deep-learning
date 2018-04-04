@@ -3,12 +3,12 @@ import numpy as np
 
 class NeuralNetwork:
 	
-	def __init__(self, input_size, layer_size_list, activation_function_list, learning_rate = 0.1, momentum = 0.0):
+	def __init__(self, input_size, layer_size_list, activation_function_list):
 		self.layer_list = [Layer(layer_size_list[i], layer_size_list[i-1], activation_function_list[i]) for i in range(1, len(layer_size_list))]
 		self.layer_list = [Layer(layer_size_list[0], input_size, activation_function_list[0])] + self.layer_list
 		self.layer_size_list = layer_size_list
-		self.learning_rate = learning_rate
-		self.momentum = momentum
+		self.learning_rate = 0.1
+		self.momentum = 0.0
 		self.last_input = []
 		self.output = []
 		self.confusion_matrix = [[]]

@@ -46,11 +46,10 @@ class NeuralNetwork:
 			self.layer_list[layer_id].weightAdjustment(self.learning_rate, self.momentum)
 
 	def correctnessTest(self, expected_output):
-		# normalized_output = [1.0 if n > threshold else 0.0 for n in self.output]
 		return self.output == expected_output
 
 
-	def trainDataSet(self, data_set, training_type, num_epoch = 0, learning_rate = 0.1, momentum = 0.0, mini_batch_size = 10, tvt_ratio = [8, 2, 0], type = "regression", print_info = False):
+	def trainDataSet(self, data_set, training_type, num_epoch = 0, learning_rate = 0.1, momentum = 0.0, mini_batch_size = 10, tvt_ratio = [8, 2, 0], type = "reg", print_info = False):
 		
 		self.learning_rate = learning_rate
 		self.momentum = momentum
@@ -66,7 +65,6 @@ class NeuralNetwork:
 		test_set_size = int(data_set_size * tvt_ratio[2] / tvt_sum)
 		if(test_set_size == 0):
 			test_set_size = 1
-			validation_set_size -= 1
 
 		for epoch in range(num_epoch):
 
@@ -93,20 +91,9 @@ class NeuralNetwork:
 					hinge_error += self.hingeLoss(obj.expected_output)
 				error /= training_set_size
 				hinge_error /= training_set_size
-				self.backpropagation( len(self.output) * [-error] )
+				self.backpropagation( len(self.output) * [error] )
 
-			elif(training_type == "mini-batch"):
-				for batch in range(training_set_size // mini_batch_size):
-					error = 0.0
-					for obj in data_set.data()[mini_batch_size*batch : mini_batch_size*(batch+1)]:
-						self.classify(obj.input)
-						error += self.getInstantError(obj.expected_output)
-						hinge_error += self.hingeLoss(obj.expected_output)
-					error /= mini_batch_size
-					hinge_error /= training_set_size
-					self.backpropagation( len(self.output) * [-error] )
-
-			if(type != "regression"):
+			if(type != "reg"):
 				error = hinge_error
 			print("Training Error: {:.5f} || ".format(error), end = '') if print_info else 0
 			x_axis_epoch.append(epoch)
@@ -116,7 +103,7 @@ class NeuralNetwork:
 			error = 0.0
 			for obj in data_set.data()[training_set_size : training_set_size+validation_set_size]:
 				self.classify(obj.input)
-				if(type == "regression"):
+				if(type == "reg"):
 					error += self.getInstantError(obj.expected_output)
 				else:
 					error += self.hingeLoss(obj.expected_output)
@@ -128,7 +115,7 @@ class NeuralNetwork:
 		error = 0.0
 		for obj in data_set.data()[training_set_size+validation_set_size : data_set_size]:
 			self.classify(obj.input)
-			if(type == "regression"):
+			if(type == "reg"):
 				error += self.getInstantError(obj.expected_output)
 			else:
 				error += self.hingeLoss(obj.expected_output)
@@ -137,7 +124,7 @@ class NeuralNetwork:
 		print("\n|| Test Error: {:.5f} || \n\n".format(error), end = '') if print_info else 0
 		
 		# Only Classification Info
-		if(type != "regression"):
+		if(type != "reg"):
 			print()
 			for line in self.confusion_matrix:
 				print("| ", end = '')

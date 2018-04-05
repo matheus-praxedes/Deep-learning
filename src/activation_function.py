@@ -16,6 +16,9 @@ class ActivationFunction:
 		elif(function_name == "step"):
 			self.function = step
 			self.derivate = derived_step
+		elif(function_name == "tanh"):
+			self.function = tanh
+			self.derivate = derived_tanh
 
 	def getFunction(self):
 		return self.function
@@ -40,3 +43,16 @@ def step(x):
 
 def derived_step(x):
 	return 1.0
+
+def tanh(x):
+	power = np.exp(-x)
+	return (1 - power) / (1 + power)
+
+def derived_tanh(x):
+	tg = tanh(x)
+	return 0.5 * (1.0 - tg * tg)
+
+step_func = ActivationFunction("step")
+sig_func = ActivationFunction("sigmoid")
+tanh_func = ActivationFunction("tanh")
+relu_func = ActivationFunction("relu")

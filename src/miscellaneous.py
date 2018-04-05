@@ -89,7 +89,7 @@ def generateInstance_4():
 
 
 def generateInstance_5():
-	n = np.random.randint(0, 2001)
+	n = np.random.randint(0, 101)
 	x_old = [np.sin(m) for m in range(n-10, n) ]
 	x = [np.sin(n-10+idx + x1 * x1) for idx, x1 in enumerate(x_old)]
 

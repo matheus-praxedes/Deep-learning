@@ -91,7 +91,7 @@ class NeuralNetwork:
 					hinge_error += self.hingeLoss(obj.expected_output)
 				error /= training_set_size
 				hinge_error /= training_set_size
-				self.backpropagation( len(self.output) * [error] )
+				self.backpropagation( len(self.output) * [-error] )
 
 			if(type != "reg"):
 				error = hinge_error

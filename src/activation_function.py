@@ -1,5 +1,11 @@
 import numpy as np
 
+'''
+A seguinte classe define quais funções de ativação poderão ser utilizadas para o treinamento 
+da rede. No nosso caso, aceitaremos as funções de ativação relu, tangente hiperbólica (tanh),
+sigmóide (sigmoid) e degrau (step). Cada uma delas serão definidas ao nível de camada (layer).
+
+'''
 class ActivationFunction:
 
 	def __init__(self, function, derivate):

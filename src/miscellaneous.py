@@ -3,6 +3,13 @@ import os.path
 from data import Instance, DataSet
 import matplotlib.pyplot as plt
 
+'''
+Este arquivo define/constrói os data_set (conjunto de dados/conjunto de instâncias) para cada uma 
+das questões. Além disso, define as funções de plot para gŕaficos e pontos (que serão utilizados
+nas anotações do Jupyter Notebook).
+
+'''
+
 def initialize_data(name, set_size):
 	data_set = DataSet(name)
 

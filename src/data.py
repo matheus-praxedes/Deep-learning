@@ -1,6 +1,12 @@
 from random import shuffle
 import pickle
 
+'''
+As seguintes classes estruturam/organizam as instâncias (classe Instance) e o 
+conjunto de instâncias (classe DataSet) que serão utilizados nos demais arqui-
+vos do projeto.
+
+'''
 class Instance:
 	def __init__(self, input, expected_output = []):
 		self.input = input

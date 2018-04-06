@@ -8,15 +8,16 @@ class Layer:
 		
 	def process(self, input_signal):
 		for neuron in self.perceptron_list:
-			neuron.process(input_signal)
+			neuron.process(input_signal) # função process() da classe Perceptron,
 
 	def updateGradients(self, error_list):
 		for index, neuron in enumerate(self.perceptron_list):
 			neuron.updateLocalGradient(error_list[index])
 
 	def weightAdjustment(self, learning_rate, momentum):
+	#Faz os ajustes dos pesos sinápticos para os neurônios de uma determinada camada.
 		for neuron in self.perceptron_list:
-			neuron.weightAdjustment(learning_rate, momentum)
+			neuron.weightAdjustment(learning_rate, momentum) # Função weightAdjustment() da classe Perceptron.
 
 	def getOutput(self):
 		 return [n.getOutput() for n in self.perceptron_list]

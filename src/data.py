@@ -18,9 +18,10 @@ class Instance:
 		print()
 
 class DataSet:
-	def __init__(self, name):
+	def __init__(self, name, seed):
 		self.instances = []
 		self.name = name
+		self.seed = seed
 
 	def size(self):
 		return len(self.instances)
@@ -39,13 +40,21 @@ class DataSet:
 		shuffle(self.instances[0:until])
 
 	def saveToFile(self):
-		file = open(self.name, "wb")
+		file = open(self.name + '.ins', "wb")
 		pickle.dump(self.instances, file)
+		file.close()
+		
+		file = open(self.name + '.seed', "wb")
+		pickle.dump(self.seed, file)
 		file.close()		
 
 	def loadFile(self):
-		file = open(self.name, "rb")
+		file = open(self.name + '.ins', "rb")
 		self.instances = pickle.load(file)
+		file.close()
+		
+		file = open(self.name + '.seed', "rb")
+		self.seed = pickle.load(file)
 		file.close()
 
 	def printInstances(self):

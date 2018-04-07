@@ -7,9 +7,14 @@ class NeuralNetwork:
 	Construtor
 	@input_size: número de entradas da rede;
 	@layer_size_list: lista com a quantidade de neurônios em cada camada da rede;
-	@activation_function_list: lista com funções de ativação para cada camada.
+	@activation_function_list: lista com funções de ativação para cada camada;
+	@seed: seed usada na geração dos pesos dos neurônios.
 	'''
-	def __init__(self, input_size, layer_size_list, activation_function_list):
+	def __init__(self, input_size, layer_size_list, activation_function_list, seed = None):
+		
+		if(seed != None):
+			np.random.seed(seed)
+			
 		self.layer_list = [Layer(layer_size_list[i], layer_size_list[i-1], activation_function_list[i]) for i in range(1, len(layer_size_list))]
 		self.layer_list = [Layer(layer_size_list[0], input_size, activation_function_list[0])] + self.layer_list
 		self.layer_size_list = layer_size_list

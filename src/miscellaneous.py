@@ -9,37 +9,40 @@ Além disso, define as funções de plot para gŕaficos e pontos (que são utili
 nas anotações do Jupyter Notebook).
 '''
 
-def initialize_data(name, set_size):
-	data_set = DataSet(name)
+def initialize_data(name, set_size, seed = None):
+	data_set = DataSet(name, seed)
 
-	# Se um arquivo com os dados já existe e tem o tamanho desejado, carregue os 
+	# Se um arquivo com os dados já existe e tem o tamanho e seed desejados, carregue os 
 	# dados do arquivo no objeto instanciado e retorne
-	if (os.path.isfile(data_set.name)):
+	if (os.path.isfile(data_set.name + '.ins') and os.path.isfile(data_set.name + '.seed')):
 		data_set.loadFile()
-		if(data_set.size() == set_size):
+		if((data_set.size() == set_size) and (data_set.seed == seed or seed == None)):
 			return data_set
 		else:
-			data_set = DataSet(name)
+			data_set = DataSet(name, seed)
 	
 	# Caso o arquivo não exista, gere os dados desejados e salve em arquivo
+	if(seed != None):
+		np.random.seed(seed)
+
 	for i in range(set_size):
 
 		if (name == "data_set_1"):
-			data_set.add( generateInstance_1() )
+			data_set.add( generateInstance_1(seed) )
 		if (name == "data_set_3a"):
-			data_set.add( generateInstance_3a() )
+			data_set.add( generateInstance_3a(seed) )
 		if (name == "data_set_3b"):
-			data_set.add( generateInstance_3b() )
+			data_set.add( generateInstance_3b(seed) )
 		if (name == "data_set_4"):
-			data_set.add( generateInstance_4() )
+			data_set.add( generateInstance_4(seed) )
 		if (name == "data_set_5"):
-			data_set.add( generateInstance_5() )
+			data_set.add( generateInstance_5(seed) )
 
 	data_set.saveToFile()
 
 	return data_set
 
-def generateInstance_1():
+def generateInstance_1(seed):
 	x1 = np.round(np.random.sample(3))
 		
 	phi = np.random.random() * 2.0 * np.pi
@@ -61,7 +64,7 @@ def generateInstance_1():
 	return Instance(x, y)
 
 
-def generateInstance_3a():
+def generateInstance_3a(seed):
 	x1 = np.random.randint(0, 2)
 	x2 = np.random.randint(0, 2)
 	x = [float(x1), float(x2)]
@@ -70,14 +73,14 @@ def generateInstance_3a():
 	return Instance(x, y)
 
 
-def generateInstance_3b():
+def generateInstance_3b(seed):
 	x = [np.random.random() * 4.0 + 0.001]
 	y = [np.sin(x[0] * np.pi) / (x[0] * np.pi)]
 
 	return Instance(x, y)
 
 
-def generateInstance_4():
+def generateInstance_4(seed):
 	t = 2 * np.pi * np.random.sample(1)[0]
 	u = np.random.sample(1)[0] + np.random.sample(1)[0]
 	r = 2-u if u > 1 else u
@@ -97,7 +100,7 @@ def generateInstance_4():
 	return Instance( x, y)
 
 
-def generateInstance_5():
+def generateInstance_5(seed):
 	n = np.random.randint(0, 101)
 	x_old = [np.sin(m) for m in range(n-10, n) ]
 	x = [np.sin(n-10+idx + x1 * x1) for idx, x1 in enumerate(x_old)]

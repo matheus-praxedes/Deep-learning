@@ -8,7 +8,7 @@ class Perceptron:
 	@input_count: quantidade de entradas que o neurônio possui
 	@activation_function: função de ativação do neurônio
 	'''
-	def __init__(self, input_count, activation_function):
+	def __init__(self, input_count, activation_function, seed = None):
 		self.input_signal = []
 		self.output = 0.0
 		self.activation_function = activation_function

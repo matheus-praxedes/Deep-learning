@@ -3,37 +3,55 @@ from activation_function import ActivationFunction
 
 class Perceptron:
 	
-	# O parâmetro input_count representa o número de entradas da rede.
-
+	'''
+	Construtor
+	@input_count: quantidade de entradas que o neurônio possui
+	@activation_function: função de ativação do neurônio
+	'''
 	def __init__(self, input_count, activation_function):
-		self.input_signal = [] #valores passados entre as camadas.
+		self.input_signal = []
 		self.output = 0.0
-
-		self.weight_list = np.random.sample(input_count+1)
-		self.old_weight_list = self.weight_list 
-		# old_weight_list: armazena os valores dos pesos sinápticos antes de se aplicar 
-		# os ajustes nos pesos, visando uma consulta posterior.  
-		
 		self.activation_function = activation_function
 		self.local_gradient = 0.0
-		self.v = 0.0 
-		# v: valor passado para a função de ativação (somatório dos pesos e as entradas
-		# /sinais).
 
+		# Cada neurônio possui um peso extra, que é o peso do bias.
+		self.weight_list = np.random.sample(input_count+1)
+
+		# Valores dos pesos referentes a um momento anteriror.
+		# É atualizado cada vez que os pesos são recalculados.  
+		self.old_weight_list = self.weight_list 
+
+		# Valor passado para a função de ativação (somatório dos pesos 
+		# multiplicados pelas entradas).
+		self.v = 0.0 
+
+	'''
+	Calcula a saída do neurônio com base na entrada fornecida
+	@input_signal: lista de valores associados às entradas do neurônio
+	'''
 	def process(self, input_signal):
-		self.input_signal = [1.0] + input_signal
-		# Por questões de simplificações, consideramos o bias como sendo a primeira entra-
-		# da do perceptron, com valor constante 1. Sendo assim, ele possui também um peso 
+		
+		# Por questões de simplificação, o bias é considerado como a primeira entrada
+		# do perceptron, com valor constante 1.0. Sendo assim, ele possui também um peso 
 		# (peso do bias), assim como nas outras entradas. 
+		self.input_signal = [1.0] + input_signal
 		self.v = np.dot(self.input_signal, self.weight_list)
 		self.output = self.activation_function.getFunction()(self.v)
 
+	'''
+	Atualiza o gradiente do neurônio.
+	@sum: somatório dos produtos entre gradientes e pesos dos neurônios 
+		 da camada seguinte
+	'''
 	def updateLocalGradient(self, sum):
 		self.local_gradient = self.activation_function.getDerivate()(self.v)*sum
 		
+	'''
+	Ajusta os pesos das sinapses neurônio usando regra delta
+	@learning_rate: taxa de aprendizagem
+	@momentum: termo do momento
+	'''
 	def weightAdjustment(self, learning_rate, momentum):
-		# Ajuste dos pesos sinápticos com base nas fórmulas do slide 07-Backpropagation
-
 		old_delta = np.subtract(self.weight_list, self.old_weight_list)
 		self.old_weight_list = self.weight_list
 		
@@ -43,11 +61,21 @@ class Perceptron:
 		current_delta = [ i+j for i,j in zip(op1, op2)]
 		self.weight_list = [ i+j for i,j in zip(self.weight_list, current_delta)] 
 
+	'''
+	Retorna a última saída calculada para o neurônio
+	'''
 	def getOutput(self):
 		return self.output
 
+	'''
+	Retorna o valor do gradiente local atual
+	'''
 	def getLocalGradient(self):
 		return self.local_gradient
 
+	'''
+	Retorna um dos pesos associados ao neurônio
+	@index: indica qual dos pesos deve ser retornado (0 para o peso do bias)
+	'''
 	def getWeight(self, index):
 		return self.weight_list[index]

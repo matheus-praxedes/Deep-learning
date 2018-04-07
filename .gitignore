@@ -1,0 +1,7 @@
+src/*.pyc
+src/.ipynb_checkpoints/*
+.vscode/*
+src/__pycache__/*
+src/c/*
+src/data_set_*
+src/*.txt

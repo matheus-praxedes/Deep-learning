@@ -3,6 +3,12 @@ import numpy as np
 
 class NeuralNetwork:
 	
+	'''
+	Construtor
+	@input_size: número de entradas da rede;
+	@layer_size_list: lista com a quantidade de neurônios em cada camada da rede;
+	@activation_function_list: lista com funções de ativação para cada camada.
+	'''
 	def __init__(self, input_size, layer_size_list, activation_function_list):
 		self.layer_list = [Layer(layer_size_list[i], layer_size_list[i-1], activation_function_list[i]) for i in range(1, len(layer_size_list))]
 		self.layer_list = [Layer(layer_size_list[0], input_size, activation_function_list[0])] + self.layer_list
@@ -13,8 +19,12 @@ class NeuralNetwork:
 		self.output = []
 		self.confusion_matrix = [[]]
 
+	'''
+	Processa os dados de entrada usando os pesos atuais da rede, gerando uma saída. Apesar do nome,
+	esta função também serve em casos de regressão.
+	@input_signal: sinal de entrada fornecido à rede.
+	'''
 	def classify(self, input_signal):
-	# Dado os valores de entrada/sinais, a rede é processada e retorna o sinal de saída.
 		signal = input_signal
 		self.last_input = signal
 
@@ -25,47 +35,68 @@ class NeuralNetwork:
 		self.output = signal
 		return signal	
 
+	'''
+	Calcula o erro na saída do neurônio, de acordo com a saída atual da rede e a saída desejada.
+	@expected_output: saída desejada para o exemplo usado no último treinamento.
+	'''
 	def getOutputError(self, expected_output):
-		# Erro na saída do neurônio para um dado exemplo - slide 07-Backpropagation
 		return np.subtract(expected_output, self.output)
 
+	'''
+	Calcula o erro instantâneo da saída da rede para um dado exemplo.
+	@expected_output: saída desejada para o exemplo usado no último treinamento.
+	'''
 	def getInstantError(self, expected_output):
-		# Erro instantâneo para todos os neurônios da camada de saída para um dado
-		# exemplo - slide 07-Backpropagation.
 		x = self.getOutputError(expected_output) 		
 		mul = np.multiply(x, x)
 		soma = 0.5 * np.sum(mul)
 		return soma
 
+	'''
+	Dada a lista de erros na saída da rede, calcula a backpropagation.
+	@output_error: sinal de erro na saída na rede.
+	'''
 	def backpropagation(self, output_error):
 		num_layers = len(self.layer_size_list)
 		output_layer = num_layers-1
 		input_layer = 0
 
+		# Para a camada de saída, o gradiente é diretamente calculado a partir do erro na saída.
+		# Após isso, os pesos da camada são ajustados
 		self.layer_list[output_layer].updateGradients(output_error)
 		self.layer_list[output_layer].weightAdjustment(self.learning_rate, self.momentum)
 
+		# A atualização é repetida para as demais camadas, usando os somatórios das camadas posteriores
+		# para atualizar seus gradientes
+		# BUG - usar valores dos somatórios ANTES de atualizar os pesos
 		for layer_id in range(output_layer-1, input_layer-1, -1):
 			self.layer_list[layer_id].updateGradients(self.layer_list[layer_id+1].getSums())
 			self.layer_list[layer_id].weightAdjustment(self.learning_rate, self.momentum)
-
-	def correctnessTest(self, expected_output):
-		# Teste de corretude da rede.
-		return self.output == expected_output
-
-
+			
+	'''
+	Faz o treinamento da rede a partir de um conjunto de dados.
+	@data_set: conjunto de dados usado no treinamento;
+	@training_type: define se o treinamento é estocástico ("stochastic") ou por lote ("batch")
+	@num_epoch: número de épocas a serem utilizados no treinamento;
+	@learning_rade: taxa de aprendizagem para este treinamento;
+	@momentum: termo do momento a ser utilizado;
+	@mini_batch_size: tamanho dos lotes para o treinamento usando mini-lote;
+	@tvt_ratio: lista que representa a proporção desejada entre os conjuntos de treinamento, validação e teste;
+	@type: define se a rede deve ser do tipo regressão ("reg") ou classificação ("class");
+	@print_info: define se informações devem ser exibidas durante o treinamento.
+	'''
 	def trainDataSet(self, data_set, training_type, num_epoch = 0, learning_rate = 0.1, momentum = 0.0, mini_batch_size = 10, tvt_ratio = [8, 2, 0], type = "reg", print_info = False):
 		
 		self.learning_rate = learning_rate
 		self.momentum = momentum
 		
-		# Matriz de confusão.
+		# Inicialização da matriz de confusão com zeros
 		self.confusion_matrix = [[0 for x in range(self.layer_size_list[-1])] for y in range(self.layer_size_list[-1])]
 		y_axis_train = []
 		y_axis_valid = []
 		x_axis_epoch = []
 
-		# Definição do tamanho dos subconjuntos de treinamento, validação e teste com base na proporção passada
+		# Definição do tamanho dos subconjuntos de treinamento, validação e teste com base na proporção definida
 		# no parâmetro tvt_ratio
 		tvt_sum = np.sum(tvt_ratio)
 		data_set_size = data_set.size()
@@ -77,8 +108,8 @@ class NeuralNetwork:
 
 		for epoch in range(num_epoch):
 
+			x_axis_epoch.append(epoch)
 			print("\r|| Epoch: {:d} || ".format(epoch+1), end = '')
-			error = 0.0
 			
 			# Loss function
 			'''
@@ -92,68 +123,85 @@ class NeuralNetwork:
 
 
 			'''
-			hinge_error = 0.0
+			class_error = 0.0
+			ms_error = 0.0
 
-			# Serve para garantir a aleatoriedade dos elementos do treinamento.
+			# Garante a aleatoriedade dos elementos do treinamento
 			data_set.reorderElements(training_set_size)
 
 			# TRAINING #
-			
-			# Tipos de treinamentos aceitos: estocástico (stochastic) e por lote (for batch).
+			# Tipos de treinamentos aceitos: estocástico (stochastic) e por lote (batch).
 			if(training_type == "stochastic"):			
 				for obj in data_set.data()[0 : training_set_size]:
 					self.classify(obj.input)
 					feedback = self.getOutputError(obj.expected_output)
 					self.backpropagation(feedback) # backpropagation para cada instância do conjunto de dados.
-					error += self.getInstantError(obj.expected_output)
-					hinge_error += self.hingeLoss(obj.expected_output)
-				error /= training_set_size # erro mse.
-				hinge_error /= training_set_size # loss function.
+
+					# Atualiza o erro adequado dependendo do problema
+					if(type == "reg"):
+						ms_error += self.getInstantError(obj.expected_output)
+					else:
+						class_error += self.verifyClassification(obj.expected_output)
+
+				ms_error /= training_set_size # erro médio quadrático (só é usado em regressões)
+				class_error /= training_set_size # erro de classificação (só é usado para classificações)
 
 			elif(training_type == "batch"):
 				for obj in data_set.data()[0 : training_set_size]:
 					self.classify(obj.input)
-					error += self.getInstantError(obj.expected_output)
-					hinge_error += self.hingeLoss(obj.expected_output)
-				error /= training_set_size
-				hinge_error /= training_set_size
-				self.backpropagation( len(self.output) * [-error] )
-				# backpropagation para todas as instâncias do conjunto de dados.
+
+					# Atualiza o erro médio quadrático sempre, já que tanto na regressão quanto na classificação
+					# ele é usado para alimentar o backpropagation. O erro de classificação só é atualizado se 
+					# o problema for de classificação, já que não é usado no backpropagation
+					ms_error += self.getInstantError(obj.expected_output)
+					if(type != "reg"):
+						class_error += self.verifyClassification(obj.expected_output)
+
+				ms_error /= training_set_size # erro médio quadrático sempre usado
+				class_error /= training_set_size # erro de classificação (só é usado para classificações)
+				# backpropagation para todas as instâncias do conjunto de dados
+				self.backpropagation( len(self.output) * [ms_error] )
 				
-			if(type != "reg"):
-			# Por padrão, definimos que todas as redes são de regressão. Caso as redes sejam de classificação,
-			# deve-se definir explicitamente o tipo classificação no parâmetro type.
-				error = hinge_error
+			error = ms_error if type == "reg" else class_error
 			print("Training Error: {:.5f} || ".format(error), end = '') if print_info else 0
-			x_axis_epoch.append(epoch)
 			y_axis_train.append(error)
 
 			# VALIDATION #
-			error = 0.0
+			ms_error = 0.0
+			class_error = 0.0
 			for obj in data_set.data()[training_set_size : training_set_size+validation_set_size]:
 				self.classify(obj.input)
 				if(type == "reg"):
-					error += self.getInstantError(obj.expected_output)
+					ms_error += self.getInstantError(obj.expected_output)
 				else:
-					error += self.hingeLoss(obj.expected_output)
-			error /= validation_set_size
+					class_error += self.verifyClassification(obj.expected_output)
+
+			ms_error /= validation_set_size
+			class_error /= validation_set_size
+
+			error = ms_error if type == "reg" else class_error
 			print("Validation Error: {:.5f} || ".format(error), end = '') if print_info else 0
 			y_axis_valid.append(error)
 
 		# TESTING #
-		error = 0.0
+		ms_error = 0.0
+		class_error = 0.0
 		for obj in data_set.data()[training_set_size+validation_set_size : data_set_size]:
 			self.classify(obj.input)
 			if(type == "reg"):
-				error += self.getInstantError(obj.expected_output)
+				ms_error += self.getInstantError(obj.expected_output)
 			else:
-				error += self.hingeLoss(obj.expected_output)
+				class_error += self.verifyClassification(obj.expected_output)
 				self.updateConfusionMatrix(obj.expected_output) # Apenas em redes de classificação.
-		error /= test_set_size
+
+		ms_error /= test_set_size
+		class_error /= test_set_size
+
+		error = ms_error if type == "reg" else class_error
 		print("\n|| Test Error: {:.5f} || \n\n".format(error), end = '') if print_info else 0
 	
 		
-		# Informações apresentadas no terminal - apenas para as redes de classificação.
+		# Exibição da matriz de confusão e da porcentagem de acerto para as redes de classificação
 		if(type != "reg"):
 			print()
 			for line in self.confusion_matrix:
@@ -168,22 +216,33 @@ class NeuralNetwork:
 
 		return [x_axis_epoch, y_axis_train, y_axis_valid]
 
-	def hingeLoss(self, expected_output):
-		# Cálculo do hinge loss com base em um limiar 0.5 .
+	'''
+	Verifica se a saída da rede está correta, considerando que o problema é de classificação.
+	Primeiro, o valor de saída atual é convertido para 0's e 1's, com o zero representado
+	neurônios não-ativados e 1 representado os ativados. É usado um limiar de 0.5.
+	@expected_output: saída da rede desejada para o último exemplo classificado.
+	'''
+	def verifyClassification(self, expected_output):
 		temp = [ 0.0 if i < 0.5 else 1.0 for i in self.output]
 		return 0.0 if temp == expected_output else 1.0
 
+	'''
+	Atualiza a matriz de confusão para as redes do tipo classificação.
+	@expected_output: saída da rede desejada para o último exemplo classificado.
+	'''
 	def updateConfusionMatrix(self, expected_output):
-		# Matriz de confusão para as redes do tipo classificação.
 		temp = [ 0.0 if i < 0.5 else 1.0 for i in self.output]
 		classification = temp.index(1.0) if 1.0 in temp else np.random.randint(0, len(expected_output))
 		expected_classification = expected_output.index(1.0)
 
 		self.confusion_matrix[expected_classification][classification] += 1
 
-
+	'''
+	Calcula e retorna uma lista contendo a porcentagem de erros e acertos para uma rede 
+	que resolve problemas de classificação. Só deve ser usada caso a matriz de confusão 
+	já tenha sido construída, já utiliza os valores dela.
+	'''
 	def getPercentError(self):
-		# Utilizado na apresentação das informações das redes de classificação.
 
 		total = 0
 		correct = 0

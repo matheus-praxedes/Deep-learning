@@ -4,15 +4,16 @@ from data import Instance, DataSet
 import matplotlib.pyplot as plt
 
 '''
-Este arquivo define/constrói os data_set (conjunto de dados/conjunto de instâncias) para cada uma 
-das questões. Além disso, define as funções de plot para gŕaficos e pontos (que serão utilizados
+Este arquivo define/constrói os conjuntos de instâncias) para cada uma das questões. 
+Além disso, define as funções de plot para gŕaficos e pontos (que são utilizados 
 nas anotações do Jupyter Notebook).
-
 '''
 
 def initialize_data(name, set_size):
 	data_set = DataSet(name)
 
+	# Se um arquivo com os dados já existe e tem o tamanho desejado, carregue os 
+	# dados do arquivo no objeto instanciado e retorne
 	if (os.path.isfile(data_set.name)):
 		data_set.loadFile()
 		if(data_set.size() == set_size):
@@ -20,6 +21,7 @@ def initialize_data(name, set_size):
 		else:
 			data_set = DataSet(name)
 	
+	# Caso o arquivo não exista, gere os dados desejados e salve em arquivo
 	for i in range(set_size):
 
 		if (name == "data_set_1"):

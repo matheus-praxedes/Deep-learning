@@ -3,10 +3,10 @@ import pickle
 
 '''
 As seguintes classes estruturam/organizam as instâncias (classe Instance) e o 
-conjunto de instâncias (classe DataSet) que serão utilizados nos demais arqui-
-vos do projeto.
-
+conjunto de instâncias (classe DataSet) que serão utilizados nos treinamentos/
+testes das redes
 '''
+
 class Instance:
 	def __init__(self, input, expected_output = []):
 		self.input = input
@@ -31,6 +31,10 @@ class DataSet:
 	def data(self):
 		return self.instances
 
+	'''
+	Reordena de forma aleatórios as until primeiras instâncias do conjunto
+	de instâncias
+	'''
 	def reorderElements(self, until):
 		shuffle(self.instances[0:until])
 

@@ -3,7 +3,7 @@ import pickle
 
 '''
 As seguintes classes estruturam/organizam as instâncias (classe Instance) e o 
-conjunto de instâncias (classe DataSet) que serão utilizados nos treinamentos/
+conjunto de instâncias (classe DataSet) que serão utilizados nos treiset_typentos/
 testes das redes
 '''
 
@@ -18,9 +18,9 @@ class Instance:
 		print()
 
 class DataSet:
-	def __init__(self, name, seed):
+	def __init__(self, set_type, seed):
 		self.instances = []
-		self.name = name
+		self.set_type = set_type
 		self.seed = seed
 
 	def size(self):
@@ -38,24 +38,6 @@ class DataSet:
 	'''
 	def reorderElements(self, until):
 		shuffle(self.instances[0:until])
-
-	def saveToFile(self):
-		file = open(self.name + '.ins', "wb")
-		pickle.dump(self.instances, file)
-		file.close()
-		
-		file = open(self.name + '.seed', "wb")
-		pickle.dump(self.seed, file)
-		file.close()		
-
-	def loadFile(self):
-		file = open(self.name + '.ins', "rb")
-		self.instances = pickle.load(file)
-		file.close()
-		
-		file = open(self.name + '.seed', "rb")
-		self.seed = pickle.load(file)
-		file.close()
 
 	def printInstances(self):
 		for instance in self.instances: 

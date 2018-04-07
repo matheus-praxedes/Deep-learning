@@ -9,36 +9,24 @@ Além disso, define as funções de plot para gŕaficos e pontos (que são utili
 nas anotações do Jupyter Notebook).
 '''
 
-def initialize_data(name, set_size, seed = None):
-	data_set = DataSet(name, seed)
-
-	# Se um arquivo com os dados já existe e tem o tamanho e seed desejados, carregue os 
-	# dados do arquivo no objeto instanciado e retorne
-	if (os.path.isfile(data_set.name + '.ins') and os.path.isfile(data_set.name + '.seed')):
-		data_set.loadFile()
-		if((data_set.size() == set_size) and (data_set.seed == seed or seed == None)):
-			return data_set
-		else:
-			data_set = DataSet(name, seed)
+def initialize_data(set_type, set_size, seed = None):
+	data_set = DataSet(set_type, seed)
 	
-	# Caso o arquivo não exista, gere os dados desejados e salve em arquivo
 	if(seed != None):
 		np.random.seed(seed)
 
 	for i in range(set_size):
 
-		if (name == "data_set_1"):
+		if (set_type == "data_set_1"):
 			data_set.add( generateInstance_1(seed) )
-		if (name == "data_set_3a"):
+		elif (set_type == "data_set_3a"):
 			data_set.add( generateInstance_3a(seed) )
-		if (name == "data_set_3b"):
+		elif (set_type == "data_set_3b"):
 			data_set.add( generateInstance_3b(seed) )
-		if (name == "data_set_4"):
+		elif (set_type == "data_set_4"):
 			data_set.add( generateInstance_4(seed) )
-		if (name == "data_set_5"):
+		elif (set_type == "data_set_5"):
 			data_set.add( generateInstance_5(seed) )
-
-	data_set.saveToFile()
 
 	return data_set
 

@@ -90,7 +90,7 @@ class NeuralNetwork:
 	@type: define se a rede deve ser do tipo regressão ("reg") ou classificação ("class");
 	@print_info: define se informações devem ser exibidas durante o treinamento.
 	'''
-	def trainDataSet(self, data_set, training_type, num_epoch = 0, learning_rate = 0.1, momentum = 0.0, mini_batch_size = 10, tvt_ratio = [8, 2, 0], type = "reg", print_info = False):
+	def fit(self, data_set, training_type, num_epoch = 0, learning_rate = 0.1, momentum = 0.0, mini_batch_size = 10, tvt_ratio = [8, 2, 0], type = "reg", print_info = False):
 		
 		self.learning_rate = learning_rate
 		self.momentum = momentum

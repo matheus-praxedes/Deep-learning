@@ -99,22 +99,28 @@ def generateInstance_5(seed):
 	return Instance( x, y)
 
 
-def plot_graph(data, title, xlabel, ylabel, figsizex = 8, figsizey = 8):
+def plot_graph(data, title, xlabel, ylabel, labels = ["Training", "Validation"], figsizex = 8, figsizey = 8, colors = []):
 	plt.figure(figsize=(figsizex, figsizey))
 	plt.title(title)
 	plt.xlabel(xlabel)
 	plt.ylabel(ylabel)
-	plt.plot(data[0], data[1], 'r', label = "Training")
-	plt.plot(data[0], data[2], 'b', label = "Validation")
+
+	colors += ['r', 'b', 'g', 'c', 'm', 'y', 'k', 'w'] 
+	for i in range(len(data)-1):
+		plt.plot(data[0], data[i+1], colors[i], label = labels[i])
+
 	plt.legend(loc = 'center right', bbox_to_anchor = (1.0, 0.7))
 
-def plot_points(data, title, xlabel, ylabel, figsizex = 4, figsizey = 4, point_size = 2):
+
+def plot_points(data, title, xlabel, ylabel, figsizex = 4, figsizey = 4, point_size = 2, colors = []):
 	plt.figure(figsize=(figsizex, figsizey))
 	plt.title(title)
 	plt.xlabel(xlabel)
 	plt.ylabel(ylabel)
 
-	data_x = [ d[0] for d in data ]
-	data_y = [ d[1] for d in data ]
+	colors += ['r', 'b', 'g', 'c', 'm', 'y', 'k', 'r'] 
+	for color, ind_data in zip(colors, data):
+		data_x = [ d[0] for d in ind_data ]
+		data_y = [ d[1] for d in ind_data ]
 
-	plt.plot(data_x, data_y, 'ro', markersize = point_size)
+		plt.plot(data_x, data_y, color+'o', markersize = point_size)

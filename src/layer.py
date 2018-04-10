@@ -73,3 +73,8 @@ class Layer:
 	'''
 	def getGradients(self):
 		return [n.getLocalGradient() for n in self.perceptron_list]
+
+
+	def weightAdjustmentBatch(self, learning_rate, momentum):
+		for neuron in self.perceptron_list:
+			neuron.weightAdjustmentBatch(learning_rate, momentum)

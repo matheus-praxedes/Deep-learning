@@ -10,7 +10,7 @@ class Perceptron:
 	'''
 	def __init__(self, input_count, activation_function, seed = None):
 		self.input_signal = []
-		self.sum_input_signal = (input_count+1) * [0.0]
+		self.sum_gradient_input = (input_count+1) * [0.0]
 		self.training_input_count = 0
 		self.output = 0.0
 		self.activation_function = activation_function
@@ -37,7 +37,7 @@ class Perceptron:
 		# do perceptron, com valor constante 1.0. Sendo assim, ele possui também um peso 
 		# (peso do bias), assim como nas outras entradas. 
 		self.input_signal = [1.0] + input_signal
-		self.sum_input_signal = [ i + j for i, j in zip(self.input_signal, self.sum_input_signal)]
+		self.sum_gradient_input = [ i * self.getLocalGradient() + j for i, j in zip(self.input_signal, self.sum_gradient_input)]
 		self.training_input_count += 1
 		self.v = np.dot(self.input_signal, self.weight_list)
 		self.output = self.activation_function.getFunction()(self.v)
@@ -46,8 +46,8 @@ class Perceptron:
 	Calcula a saída do neurônio com base na média dos sinais de entrada acumulados
 	'''
 	def processAvg(self):
-		self.input_signal = [sig / self.training_input_count for sig in self.sum_input_signal]
-		self.sum_input_signal = len(self.input_signal) * [0.0]
+		self.input_signal = [sig / self.training_input_count for sig in self.sum_gradient_input]
+		self.sum_gradient_input = len(self.input_signal) * [0.0]
 		self.training_input_count = 0
 		self.v = np.dot(self.input_signal, self.weight_list)
 		self.output = self.activation_function.getFunction()(self.v)
@@ -70,6 +70,21 @@ class Perceptron:
 		self.old_weight_list = self.weight_list
 		
 		op1 = np.multiply(learning_rate * self.local_gradient, self.input_signal)
+		op2 = np.multiply(momentum, old_delta)
+		
+		current_delta = [ i+j for i,j in zip(op1, op2)]
+		self.weight_list = [ i+j for i,j in zip(self.weight_list, current_delta)] 
+
+	'''
+	Ajusta os pesos das sinapses neurônio usando regra delta para treinamento em lote
+	@learning_rate: taxa de aprendizagem
+	@momentum: termo do momento
+	'''
+	def weightAdjustmentBatch(self, learning_rate, momentum):
+		old_delta = np.subtract(self.weight_list, self.old_weight_list)
+		self.old_weight_list = self.weight_list
+		
+		op1 = np.multiply(learning_rate, self.input_signal)
 		op2 = np.multiply(momentum, old_delta)
 		
 		current_delta = [ i+j for i,j in zip(op1, op2)]

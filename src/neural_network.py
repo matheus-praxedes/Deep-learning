@@ -83,6 +83,33 @@ class NeuralNetwork:
 		for layer_id in range(output_layer-1, input_layer-1, -1):
 			self.layer_list[layer_id].updateGradients(self.layer_list[layer_id+1].getSums())
 			self.layer_list[layer_id].weightAdjustment(self.learning_rate, self.momentum)
+
+	'''
+	Dada a lista de erros na saída da rede, recalcula os gradientes.
+	@output_error: sinal de erro na saída na rede.
+	'''
+	def gradientBackpropagation(self, output_error):
+		num_layers = len(self.layer_size_list)
+		output_layer = num_layers-1
+		input_layer = 0
+
+		# Para a camada de saída, o gradiente é diretamente calculado a partir do erro na saída.
+		self.layer_list[output_layer].updateGradients(output_error)
+
+		# A atualização é repetida para as demais camadas, usando os somatórios das camadas posteriores
+		# para atualizar seus gradientes
+		for layer_id in range(output_layer-1, input_layer-1, -1):
+			self.layer_list[layer_id].updateGradients(self.layer_list[layer_id+1].getSums())
+
+	def weightBackpropagation(self):
+		num_layers = len(self.layer_size_list)
+		output_layer = num_layers-1
+		input_layer = 0
+
+		# A atualização é repetida para as demais camadas, usando os somatórios das camadas posteriores
+		# para atualizar seus gradientes
+		for layer_id in range(output_layer, input_layer-1, -1):
+			self.layer_list[layer_id].weightAdjustment(self.learning_rate, self.momentum)
 			
 	'''
 	Faz o treinamento da rede a partir de um conjunto de dados.
@@ -153,6 +180,8 @@ class NeuralNetwork:
 					# ele é usado para alimentar o backpropagation. O erro de classificação só é atualizado se 
 					# o problema for de classificação, já que não é usado no backpropagation
 					ms_error += self.getInstantError(obj.expected_output)
+					feedback = self.getOutputError(obj.expected_output)
+					self.gradientBackpropagation(feedback)
 					if(type != "reg"):
 						class_error += self.verifyClassification(obj.expected_output)
 
@@ -160,6 +189,7 @@ class NeuralNetwork:
 				class_error /= training_set_size # erro de classificação (só é usado para classificações)
 				self.classifyAvg()
 				# backpropagation para todas as instâncias do conjunto de dados
+				#self.weightBackpropagation()
 				self.backpropagation( len(self.output) * [ms_error] )
 				
 			error = ms_error if type == "reg" else class_error

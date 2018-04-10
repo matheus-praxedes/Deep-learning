@@ -38,7 +38,14 @@ class NeuralNetwork:
 			signal = layer.getOutput()
 
 		self.output = signal
-		return signal	
+		return signal
+
+	def classifyAvg(self):
+		for layer in self.layer_list:
+			layer.processAvg()
+			
+		self.output = self.layer_list[-1].getOutput()
+		return self.output
 
 	'''
 	Calcula o erro na saída do neurônio, de acordo com a saída atual da rede e a saída desejada.
@@ -73,7 +80,6 @@ class NeuralNetwork:
 
 		# A atualização é repetida para as demais camadas, usando os somatórios das camadas posteriores
 		# para atualizar seus gradientes
-		# BUG - usar valores dos somatórios ANTES de atualizar os pesos
 		for layer_id in range(output_layer-1, input_layer-1, -1):
 			self.layer_list[layer_id].updateGradients(self.layer_list[layer_id+1].getSums())
 			self.layer_list[layer_id].weightAdjustment(self.learning_rate, self.momentum)
@@ -116,18 +122,6 @@ class NeuralNetwork:
 			x_axis_epoch.append(epoch)
 			print("\r|| Epoch: {:d} || ".format(epoch+1), end = '')
 			
-			# Loss function
-			'''
-
-			Loss functions quantificam o quão perto uma determinada rede neural está do ideal para o qual ela
-			está treinando. Para isso, calculamos uma métrica com base no erro que observamos nas previsões da 
-			rede. Em seguida, agregamos esses erros em todo o conjunto de dados e calculamos a média deles, e 
-			agora temos um único número representativo de quão próximo a rede neural é o seu ideal. Para regressão,
-			utilizamos a mse loss, Já para a classificação, utilizamos a hinge loss (que para o nosso caso será 
-			calculada com base em um valor de limiar).
-
-
-			'''
 			class_error = 0.0
 			ms_error = 0.0
 
@@ -164,6 +158,7 @@ class NeuralNetwork:
 
 				ms_error /= training_set_size # erro médio quadrático sempre usado
 				class_error /= training_set_size # erro de classificação (só é usado para classificações)
+				self.classifyAvg()
 				# backpropagation para todas as instâncias do conjunto de dados
 				self.backpropagation( len(self.output) * [ms_error] )
 				

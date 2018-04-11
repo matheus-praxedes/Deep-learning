@@ -3,15 +3,11 @@ from activation_function import ActivationFunction
 
 class Perceptron:
 	
-	'''
-	Construtor
+	''' Construtor
 	@input_count: quantidade de entradas que o neurônio possui
-	@activation_function: função de ativação do neurônio
-	'''
+	@activation_function: função de ativação do neurônio '''
 	def __init__(self, input_count, activation_function, seed = None):
 		self.input_signal = []
-		self.sum_gradient_input = (input_count+1) * [0.0]
-		self.training_input_count = 0
 		self.output = 0.0
 		self.activation_function = activation_function
 		self.local_gradient = 0.0
@@ -27,10 +23,14 @@ class Perceptron:
 		# multiplicados pelas entradas).
 		self.v = 0.0
 
-	'''
-	Calcula a saída do neurônio com base na entrada fornecida
-	@input_signal: lista de valores associados às entradas do neurônio
-	'''
+		######
+		self.sum_gradient_input = (input_count+1) * [0.0]
+		self.sum_input = (input_count+1) * [0.0]
+		self.training_input_count = 0
+
+
+	''' Calcula a saída do neurônio com base na entrada fornecida
+	@input_signal: lista de valores associados às entradas do neurônio '''
 	def process(self, input_signal):
 		
 		# Por questões de simplificação, o bias é considerado como a primeira entrada
@@ -38,33 +38,35 @@ class Perceptron:
 		# (peso do bias), assim como nas outras entradas. 
 		self.input_signal = [1.0] + input_signal
 		self.sum_gradient_input = [ i * self.getLocalGradient() + j for i, j in zip(self.input_signal, self.sum_gradient_input)]
+		self.sum_input = [ i + j for i, j in zip(self.input_signal, self.sum_input)]
 		self.training_input_count += 1
 		self.v = np.dot(self.input_signal, self.weight_list)
 		self.output = self.activation_function.getFunction()(self.v)
 
-	'''
-	Calcula a saída do neurônio com base na média dos sinais de entrada acumulados
-	'''
+
+	''' Calcula a saída do neurônio com base na média dos sinais de entrada acumulados '''
 	def processAvg(self):
-		self.input_signal = [sig / self.training_input_count for sig in self.sum_gradient_input]
-		self.sum_gradient_input = len(self.input_signal) * [0.0]
-		self.training_input_count = 0
+		self.input_signal = [sig / self.training_input_count for sig in self.sum_input]
+		self.sum_input = len(self.input_signal) * [0.0]
+		
 		self.v = np.dot(self.input_signal, self.weight_list)
 		self.output = self.activation_function.getFunction()(self.v)
 
-	'''
-	Atualiza o gradiente do neurônio.
+		self.input_signal = [sig / self.training_input_count for sig in self.sum_gradient_input]
+		self.sum_gradient_input = len(self.input_signal) * [0.0]
+		self.training_input_count = 0
+
+
+	'''	Atualiza o gradiente do neurônio.
 	@sum: somatório dos produtos entre gradientes e pesos dos neurônios 
-		 da camada seguinte
-	'''
+		 da camada seguinte	'''
 	def updateLocalGradient(self, sum):
 		self.local_gradient = self.activation_function.getDerivate()(self.v)*sum
 		
-	'''
-	Ajusta os pesos das sinapses neurônio usando regra delta
+
+	'''	Ajusta os pesos das sinapses neurônio usando regra delta
 	@learning_rate: taxa de aprendizagem
-	@momentum: termo do momento
-	'''
+	@momentum: termo do momento	'''
 	def weightAdjustment(self, learning_rate, momentum):
 		old_delta = np.subtract(self.weight_list, self.old_weight_list)
 		self.old_weight_list = self.weight_list
@@ -75,11 +77,10 @@ class Perceptron:
 		current_delta = [ i+j for i,j in zip(op1, op2)]
 		self.weight_list = [ i+j for i,j in zip(self.weight_list, current_delta)] 
 
-	'''
-	Ajusta os pesos das sinapses neurônio usando regra delta para treinamento em lote
+
+	'''	Ajusta os pesos das sinapses neurônio usando regra delta para treinamento em lote
 	@learning_rate: taxa de aprendizagem
-	@momentum: termo do momento
-	'''
+	@momentum: termo do momento	'''
 	def weightAdjustmentBatch(self, learning_rate, momentum):
 		old_delta = np.subtract(self.weight_list, self.old_weight_list)
 		self.old_weight_list = self.weight_list
@@ -90,21 +91,18 @@ class Perceptron:
 		current_delta = [ i+j for i,j in zip(op1, op2)]
 		self.weight_list = [ i+j for i,j in zip(self.weight_list, current_delta)] 
 
-	'''
-	Retorna a última saída calculada para o neurônio
-	'''
+
+	'''	Retorna a última saída calculada para o neurônio '''
 	def getOutput(self):
 		return self.output
 
-	'''
-	Retorna o valor do gradiente local atual
-	'''
+
+	'''	Retorna o valor do gradiente local atual '''
 	def getLocalGradient(self):
 		return self.local_gradient
 
-	'''
-	Retorna um dos pesos associados ao neurônio
-	@index: indica qual dos pesos deve ser retornado (0 para o peso do bias)
-	'''
+
+	'''	Retorna um dos pesos associados ao neurônio
+	@index: indica qual dos pesos deve ser retornado (0 para o peso do bias) '''
 	def getWeight(self, index):
 		return self.weight_list[index]

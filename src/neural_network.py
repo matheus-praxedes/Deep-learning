@@ -40,6 +40,13 @@ class NeuralNetwork:
 		self.output = signal
 		return signal
 
+	def classifyAvg(self):
+		for layer in self.layer_list:
+			layer.processAvg()
+			
+		self.output = self.layer_list[-1].getOutput()
+		return self.output
+
 	'''
 	Calcula o erro na saída do neurônio, de acordo com a saída atual da rede e a saída desejada.
 	@expected_output: saída desejada para o exemplo usado no último treinamento.
@@ -180,6 +187,7 @@ class NeuralNetwork:
 
 				ms_error /= training_set_size # erro médio quadrático sempre usado
 				class_error /= training_set_size # erro de classificação (só é usado para classificações)
+				self.classifyAvg()
 				# backpropagation para todas as instâncias do conjunto de dados
 				#self.weightBackpropagation()
 				self.backpropagation( len(self.output) * [ms_error] )

@@ -10,8 +10,6 @@ class Perceptron:
 	'''
 	def __init__(self, input_count, activation_function, seed = None):
 		self.input_signal = []
-		self.sum_input_signal = (input_count+1) * [0.0]
-		self.training_input_count = 0
 		self.output = 0.0
 		self.activation_function = activation_function
 		self.local_gradient = 0.0
@@ -37,18 +35,6 @@ class Perceptron:
 		# do perceptron, com valor constante 1.0. Sendo assim, ele possui também um peso 
 		# (peso do bias), assim como nas outras entradas. 
 		self.input_signal = [1.0] + input_signal
-		self.sum_input_signal = [ i + j for i, j in zip(self.input_signal, self.sum_input_signal)]
-		self.training_input_count += 1
-		self.v = np.dot(self.input_signal, self.weight_list)
-		self.output = self.activation_function.getFunction()(self.v)
-
-	'''
-	Calcula a saída do neurônio com base na média dos sinais de entrada acumulados
-	'''
-	def processAvg(self):
-		self.input_signal = [sig / self.training_input_count for sig in self.sum_input_signal]
-		self.sum_input_signal = len(self.input_signal) * [0.0]
-		self.training_input_count = 0
 		self.v = np.dot(self.input_signal, self.weight_list)
 		self.output = self.activation_function.getFunction()(self.v)
 

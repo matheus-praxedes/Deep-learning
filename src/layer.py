@@ -21,13 +21,6 @@ class Layer:
 			neuron.process(input_signal)
 
 	'''
-	Calcula a saída de todos os neurônios da camada baseado na média das entradas
-	'''
-	def processAvg(self):
-		for neuron in self.perceptron_list:
-			neuron.processAvg()
-
-	'''
 	Atualiza o valor dos gradientes de todos os neurônios da camada
 	@error_list: uma lista que deve conter os resultados dos somatórios entre pesos 
 				 e gradientes de todos os neurônios da camada posterior.

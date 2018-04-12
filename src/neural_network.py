@@ -109,7 +109,7 @@ class NeuralNetwork:
 		# A atualização é repetida para as demais camadas, usando os somatórios das camadas posteriores
 		# para atualizar seus gradientes
 		for layer_id in range(output_layer, input_layer-1, -1):
-			self.layer_list[layer_id].weightAdjustment(self.learning_rate, self.momentum)
+			self.layer_list[layer_id].weightAdjustmentBatch(self.learning_rate, self.momentum)
 			
 	'''
 	Faz o treinamento da rede a partir de um conjunto de dados.
@@ -189,8 +189,8 @@ class NeuralNetwork:
 				class_error /= training_set_size # erro de classificação (só é usado para classificações)
 				self.classifyAvg()
 				# backpropagation para todas as instâncias do conjunto de dados
-				#self.weightBackpropagation()
-				self.backpropagation( len(self.output) * [ms_error] )
+				self.weightBackpropagation()
+				#self.backpropagation( len(self.output) * [ms_error] )
 				
 			error = ms_error if type == "reg" else class_error
 			print("Training Error: {:.5f} || ".format(error), end = '') if print_info else 0

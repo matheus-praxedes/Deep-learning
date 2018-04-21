@@ -1,4 +1,5 @@
 import numpy as np
+np.random.seed(11403723)
 from keras.models import Sequential
 from keras.layers import Dense
 from keras import losses
@@ -14,8 +15,8 @@ class NeuralNetwork:
 	@activation_function_list: lista com funções de ativação para cada camada;
 	@seed: seed usada na geração dos pesos dos neurônios.
 	'''
-	def __init__(self, input_size, layer_size_list, activation_function_list, seed = None):
-		
+	def __init__(self, input_size, layer_size_list, activation_function_list):
+
 		self.layer_size_list = layer_size_list
 		self.learning_rate = 0.1
 		self.momentum = 0.0
@@ -35,7 +36,7 @@ class NeuralNetwork:
 	@input_signal: sinal de entrada fornecido à rede.
 	'''
 	def classify(self, input_signal):
-		self.output = self.model.predict( input_signal, batch_size = 1, verbose = 0)
+		self.output = self.model.predict( np.array([input_signal]), batch_size = 1, verbose = 0)[0]
 		return self.output
 
 	'''
@@ -80,7 +81,6 @@ class NeuralNetwork:
 			mini_batch_size = 1
 		elif(training_type == "batch"):
 			mini_batch_size = training_set_size
-
 
 		self.model.compile(loss = losses.mean_squared_error,
 						   optimizer = optimizers.SGD(lr = self.learning_rate, momentum = self.momentum),

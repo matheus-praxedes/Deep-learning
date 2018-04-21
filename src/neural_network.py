@@ -1,5 +1,9 @@
-from layer import Layer
 import numpy as np
+from keras.models import Sequential
+from keras.layers import Dense
+from keras import losses
+from keras import optimizers
+from keras import metrics
 
 class NeuralNetwork:
 	
@@ -12,17 +16,18 @@ class NeuralNetwork:
 	'''
 	def __init__(self, input_size, layer_size_list, activation_function_list, seed = None):
 		
-		if(seed != None):
-			np.random.seed(seed)
-			
-		self.layer_list = [Layer(layer_size_list[i], layer_size_list[i-1], activation_function_list[i]) for i in range(1, len(layer_size_list))]
-		self.layer_list = [Layer(layer_size_list[0], input_size, activation_function_list[0])] + self.layer_list
 		self.layer_size_list = layer_size_list
 		self.learning_rate = 0.1
 		self.momentum = 0.0
-		self.last_input = []
-		self.output = []
 		self.confusion_matrix = [[]]
+		self.output = []
+
+		self.model = Sequential()
+		self.model.add( Dense(units = layer_size_list[0], input_dim = input_size) )
+		self.model.add( activation_function_list[0] )
+		for i in range(1, len(layer_size_list)):
+			self.model.add( Dense(layer_size_list[i]) )
+			self.model.add( activation_function_list[i] )
 
 	'''
 	Processa os dados de entrada usando os pesos atuais da rede, gerando uma saída. Apesar do nome,
@@ -30,87 +35,9 @@ class NeuralNetwork:
 	@input_signal: sinal de entrada fornecido à rede.
 	'''
 	def classify(self, input_signal):
-		signal = input_signal
-		self.last_input = signal
-
-		for layer in self.layer_list:
-			layer.process(signal)
-			signal = layer.getOutput()
-
-		self.output = signal
-		return signal
-
-	def classifyAvg(self):
-		for layer in self.layer_list:
-			layer.processAvg()
-			
-		self.output = self.layer_list[-1].getOutput()
+		self.output = self.model.predict( input_signal, batch_size = 1, verbose = 0)
 		return self.output
 
-	'''
-	Calcula o erro na saída do neurônio, de acordo com a saída atual da rede e a saída desejada.
-	@expected_output: saída desejada para o exemplo usado no último treinamento.
-	'''
-	def getOutputError(self, expected_output):
-		return np.subtract(expected_output, self.output)
-
-	'''
-	Calcula o erro instantâneo da saída da rede para um dado exemplo.
-	@expected_output: saída desejada para o exemplo usado no último treinamento.
-	'''
-	def getInstantError(self, expected_output):
-		x = self.getOutputError(expected_output) 		
-		mul = np.multiply(x, x)
-		soma = 0.5 * np.sum(mul)
-		return soma
-
-	'''
-	Dada a lista de erros na saída da rede, calcula a backpropagation.
-	@output_error: sinal de erro na saída na rede.
-	'''
-	def backpropagation(self, output_error):
-		num_layers = len(self.layer_size_list)
-		output_layer = num_layers-1
-		input_layer = 0
-
-		# Para a camada de saída, o gradiente é diretamente calculado a partir do erro na saída.
-		# Após isso, os pesos da camada são ajustados
-		self.layer_list[output_layer].updateGradients(output_error)
-		self.layer_list[output_layer].weightAdjustment(self.learning_rate, self.momentum)
-
-		# A atualização é repetida para as demais camadas, usando os somatórios das camadas posteriores
-		# para atualizar seus gradientes
-		for layer_id in range(output_layer-1, input_layer-1, -1):
-			self.layer_list[layer_id].updateGradients(self.layer_list[layer_id+1].getSums())
-			self.layer_list[layer_id].weightAdjustment(self.learning_rate, self.momentum)
-
-	'''
-	Dada a lista de erros na saída da rede, recalcula os gradientes.
-	@output_error: sinal de erro na saída na rede.
-	'''
-	def gradientBackpropagation(self, output_error):
-		num_layers = len(self.layer_size_list)
-		output_layer = num_layers-1
-		input_layer = 0
-
-		# Para a camada de saída, o gradiente é diretamente calculado a partir do erro na saída.
-		self.layer_list[output_layer].updateGradients(output_error)
-
-		# A atualização é repetida para as demais camadas, usando os somatórios das camadas posteriores
-		# para atualizar seus gradientes
-		for layer_id in range(output_layer-1, input_layer-1, -1):
-			self.layer_list[layer_id].updateGradients(self.layer_list[layer_id+1].getSums())
-
-	def weightBackpropagation(self):
-		num_layers = len(self.layer_size_list)
-		output_layer = num_layers-1
-		input_layer = 0
-
-		# A atualização é repetida para as demais camadas, usando os somatórios das camadas posteriores
-		# para atualizar seus gradientes
-		for layer_id in range(output_layer, input_layer-1, -1):
-			self.layer_list[layer_id].weightAdjustmentBatch(self.learning_rate, self.momentum)
-			
 	'''
 	Faz o treinamento da rede a partir de um conjunto de dados.
 	@data_set: conjunto de dados usado no treinamento;
@@ -127,12 +54,11 @@ class NeuralNetwork:
 		
 		self.learning_rate = learning_rate
 		self.momentum = momentum
+		verb = 1 if print_info else 0
+		met = [] if type == "reg" else [metrics.categorical_accuracy]
 		
 		# Inicialização da matriz de confusão com zeros
 		self.confusion_matrix = [[0 for x in range(self.layer_size_list[-1])] for y in range(self.layer_size_list[-1])]
-		y_axis_train = []
-		y_axis_valid = []
-		x_axis_epoch = []
 
 		# Definição do tamanho dos subconjuntos de treinamento, validação e teste com base na proporção definida
 		# no parâmetro tvt_ratio
@@ -141,147 +67,40 @@ class NeuralNetwork:
 		training_set_size = int(data_set_size * tvt_ratio[0] / tvt_sum)
 		validation_set_size = int(data_set_size * tvt_ratio[1] / tvt_sum)
 		test_set_size = int(data_set_size * tvt_ratio[2] / tvt_sum)
-		if(test_set_size == 0):
-			test_set_size = 1
+		test_set_size = 1 if test_set_size == 0 else test_set_size
 
-		for epoch in range(num_epoch):
+		x_train = np.array( [ data.input for data in data_set.data()[0 : training_set_size] ] )
+		y_train = np.array( [ data.expected_output for data in data_set.data()[0 : training_set_size] ] )
+		x_val   = np.array( [ data.input for data in data_set.data()[training_set_size : training_set_size + validation_set_size] ] )
+		y_val   = np.array( [ data.expected_output for data in data_set.data()[training_set_size : training_set_size + validation_set_size] ] )
+		x_test  = np.array( [ data.input for data in data_set.data()[training_set_size + validation_set_size : data_set_size] ] )
+		y_test  = np.array( [ data.expected_output for data in data_set.data()[training_set_size + validation_set_size : data_set_size] ] )
 
-			x_axis_epoch.append(epoch)
-			print("\r|| Epoch: {:d} || ".format(epoch+1), end = '')
-			
-			class_error = 0.0
-			ms_error = 0.0
+		if(training_type == "stochastic"):
+			mini_batch_size = 1
+		elif(training_type == "batch"):
+			mini_batch_size = training_set_size
 
-			# Garante a aleatoriedade dos elementos do treinamento
-			data_set.reorderElements(training_set_size)
 
-			# TRAINING #
-			# Tipos de treinamentos aceitos: estocástico (stochastic) e por lote (batch).
-			if(training_type == "stochastic"):			
-				for obj in data_set.data()[0 : training_set_size]:
-					self.classify(obj.input)
-					feedback = self.getOutputError(obj.expected_output)
-					self.backpropagation(feedback) # backpropagation para cada instância do conjunto de dados.
+		self.model.compile(loss = losses.mean_squared_error,
+						   optimizer = optimizers.SGD(lr = self.learning_rate, momentum = self.momentum),
+						   metrics = met )
 
-					# Atualiza o erro adequado dependendo do problema
-					if(type == "reg"):
-						ms_error += self.getInstantError(obj.expected_output)
-					else:
-						class_error += self.verifyClassification(obj.expected_output)
+		info = self.model.fit(x_train, y_train,
+							  epochs = num_epoch,
+							  batch_size = mini_batch_size,
+							  verbose = verb,
+							  validation_data = (x_val, y_val),
+							  shuffle = True )
 
-				ms_error /= training_set_size # erro médio quadrático (só é usado em regressões)
-				class_error /= training_set_size # erro de classificação (só é usado para classificações)
+		loss_and_metrics = self.model.evaluate(x_test, y_test, 
+											   batch_size = mini_batch_size,
+											   verbose = verb)
 
-			elif(training_type == "batch"):
-				for obj in data_set.data()[0 : training_set_size]:
-					self.classify(obj.input)
-
-					# Atualiza o erro médio quadrático sempre, já que tanto na regressão quanto na classificação
-					# ele é usado para alimentar o backpropagation. O erro de classificação só é atualizado se 
-					# o problema for de classificação, já que não é usado no backpropagation
-					ms_error += self.getInstantError(obj.expected_output)
-					feedback = self.getOutputError(obj.expected_output)
-					self.gradientBackpropagation(feedback)
-					if(type != "reg"):
-						class_error += self.verifyClassification(obj.expected_output)
-
-				ms_error /= training_set_size # erro médio quadrático sempre usado
-				class_error /= training_set_size # erro de classificação (só é usado para classificações)
-				self.classifyAvg()
-				# backpropagation para todas as instâncias do conjunto de dados
-				self.weightBackpropagation()
-				#self.backpropagation( len(self.output) * [ms_error] )
-				
-			error = ms_error if type == "reg" else class_error
-			print("Training Error: {:.5f} || ".format(error), end = '') if print_info else 0
-			y_axis_train.append(error)
-
-			# VALIDATION #
-			ms_error = 0.0
-			class_error = 0.0
-			for obj in data_set.data()[training_set_size : training_set_size+validation_set_size]:
-				self.classify(obj.input)
-				if(type == "reg"):
-					ms_error += self.getInstantError(obj.expected_output)
-				else:
-					class_error += self.verifyClassification(obj.expected_output)
-
-			ms_error /= validation_set_size
-			class_error /= validation_set_size
-
-			error = ms_error if type == "reg" else class_error
-			print("Validation Error: {:.5f} || ".format(error), end = '') if print_info else 0
-			y_axis_valid.append(error)
-
-		# TESTING #
-		ms_error = 0.0
-		class_error = 0.0
-		for obj in data_set.data()[training_set_size+validation_set_size : data_set_size]:
-			self.classify(obj.input)
-			if(type == "reg"):
-				ms_error += self.getInstantError(obj.expected_output)
-			else:
-				class_error += self.verifyClassification(obj.expected_output)
-				self.updateConfusionMatrix(obj.expected_output) # Apenas em redes de classificação.
-
-		ms_error /= test_set_size
-		class_error /= test_set_size
-
-		error = ms_error if type == "reg" else class_error
-		print("\n|| Test Error: {:.5f} || \n\n".format(error), end = '') if print_info else 0
-	
-		
-		# Exibição da matriz de confusão e da porcentagem de acerto para as redes de classificação
-		if(type != "reg"):
-			print()
-			for line in self.confusion_matrix:
-				print("| ", end = '')
-				for value in line:
-					print("{:3d} ".format(value), end = '')
-				print(" |")
-
-			print()
-			percent_error = self.getPercentError()
-			print("Correct: {:3.1f}%\nIncorrect: {:3.1f}%".format(percent_error[0], percent_error[1]))
-
-		return [x_axis_epoch, y_axis_train, y_axis_valid]
-
-	'''
-	Verifica se a saída da rede está correta, considerando que o problema é de classificação.
-	Primeiro, o valor de saída atual é convertido para 0's e 1's, com o zero representado
-	neurônios não-ativados e 1 representado os ativados. É usado um limiar de 0.5.
-	@expected_output: saída da rede desejada para o último exemplo classificado.
-	'''
-	def verifyClassification(self, expected_output):
-		temp = [ 0.0 if i < 0.5 else 1.0 for i in self.output]
-		return 0.0 if temp == expected_output else 1.0
-
-	'''
-	Atualiza a matriz de confusão para as redes do tipo classificação.
-	@expected_output: saída da rede desejada para o último exemplo classificado.
-	'''
-	def updateConfusionMatrix(self, expected_output):
-		temp = [ 0.0 if i < 0.5 else 1.0 for i in self.output]
-		classification = temp.index(1.0) if 1.0 in temp else np.random.randint(0, len(expected_output))
-		expected_classification = expected_output.index(1.0)
-
-		self.confusion_matrix[expected_classification][classification] += 1
-
-	'''
-	Calcula e retorna uma lista contendo a porcentagem de erros e acertos para uma rede 
-	que resolve problemas de classificação. Só deve ser usada caso a matriz de confusão 
-	já tenha sido construída, já utiliza os valores dela.
-	'''
-	def getPercentError(self):
-
-		total = 0
-		correct = 0
-		incorrect = 0
-
-		for index_l, line in enumerate(self.confusion_matrix):
-			for index_c, value in enumerate(line):
-				total += value
-				correct += value if index_l == index_c else 0
-				incorrect += 0 if index_l == index_c else value
-
-		return [ 100*correct/total, 100*incorrect/total ]
+		x_axis_epoch = [i for i in range(num_epoch)]		
+		if(type == "reg"):
+			return [x_axis_epoch, info.history['loss'], info.history['val_loss'] ]
+		else:
+			return [x_axis_epoch, 
+				   [1.0 - i for i in info.history['categorical_accuracy'] ],
+				   [1.0 - i for i in info.history['val_categorical_accuracy'] ] ]

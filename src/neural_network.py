@@ -55,11 +55,6 @@ class NeuralNetwork:
 		
 		self.learning_rate = learning_rate
 		self.momentum = momentum
-		verb = 1 if print_info else 0
-		met = [] if type == "reg" else [metrics.categorical_accuracy]
-		
-		# Inicialização da matriz de confusão com zeros
-		self.confusion_matrix = [[0 for x in range(self.layer_size_list[-1])] for y in range(self.layer_size_list[-1])]
 
 		# Definição do tamanho dos subconjuntos de treinamento, validação e teste com base na proporção definida
 		# no parâmetro tvt_ratio
@@ -68,20 +63,23 @@ class NeuralNetwork:
 		training_set_size = int(data_set_size * tvt_ratio[0] / tvt_sum)
 		validation_set_size = int(data_set_size * tvt_ratio[1] / tvt_sum)
 		test_set_size = int(data_set_size * tvt_ratio[2] / tvt_sum)
-		test_set_size = 1 if test_set_size == 0 else test_set_size
-
+		
+		# Separação dos conjuntos de dados de acordo com os tamanho definidos
 		x_train = np.array( [ data.input for data in data_set.data()[0 : training_set_size] ] )
 		y_train = np.array( [ data.expected_output for data in data_set.data()[0 : training_set_size] ] )
 		x_val   = np.array( [ data.input for data in data_set.data()[training_set_size : training_set_size + validation_set_size] ] )
 		y_val   = np.array( [ data.expected_output for data in data_set.data()[training_set_size : training_set_size + validation_set_size] ] )
 		x_test  = np.array( [ data.input for data in data_set.data()[training_set_size + validation_set_size : data_set_size] ] )
 		y_test  = np.array( [ data.expected_output for data in data_set.data()[training_set_size + validation_set_size : data_set_size] ] )
+	
+		verb = 1 if print_info else 0
+		val_data = None if validation_set_size == 0 else (x_val, y_val)
+		met = [] if type == "reg" else [metrics.categorical_accuracy]
+		mini_batch_size = 1 if training_type == "stochastic" else mini_batch_size
+		mini_batch_size = training_set_size if training_type == "batch" else mini_batch_size
 
-		if(training_type == "stochastic"):
-			mini_batch_size = 1
-		elif(training_type == "batch"):
-			mini_batch_size = training_set_size
-
+		# Executando a rede
+		
 		self.model.compile(loss = losses.mean_squared_error,
 						   optimizer = optimizers.SGD(lr = self.learning_rate, momentum = self.momentum),
 						   metrics = met )
@@ -90,17 +88,26 @@ class NeuralNetwork:
 							  epochs = num_epoch,
 							  batch_size = mini_batch_size,
 							  verbose = verb,
-							  validation_data = (x_val, y_val),
+							  validation_data = val_data,
 							  shuffle = True )
 
-		loss_and_metrics = self.model.evaluate(x_test, y_test, 
-											   batch_size = mini_batch_size,
-											   verbose = verb)
+		if test_set_size > 0:
+			self.model.evaluate(x_test, y_test, 
+							    batch_size = mini_batch_size,
+							    verbose = 1)
+		
+		x_axis_epoch = [i+1 for i in range(num_epoch)]	
 
-		x_axis_epoch = [i for i in range(num_epoch)]		
 		if(type == "reg"):
-			return [x_axis_epoch, info.history['loss'], info.history['val_loss'] ]
+			if(validation_set_size > 0):
+				return [x_axis_epoch, info.history['loss'], info.history['val_loss'] ]
+			else:
+				return [x_axis_epoch, info.history['loss'] ]
 		else:
-			return [x_axis_epoch, 
-				   [1.0 - i for i in info.history['categorical_accuracy'] ],
-				   [1.0 - i for i in info.history['val_categorical_accuracy'] ] ]
+			if(validation_set_size > 0):
+				return [x_axis_epoch, 
+					   [1.0 - i for i in info.history['categorical_accuracy'] ],
+				   	   [1.0 - i for i in info.history['val_categorical_accuracy'] ] ]
+			else:
+				return [x_axis_epoch, 
+					   [1.0 - i for i in info.history['categorical_accuracy'] ] ]

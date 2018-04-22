@@ -18,10 +18,8 @@ class Instance:
 		print()
 
 class DataSet:
-	def __init__(self, set_type, seed):
+	def __init__(self):
 		self.instances = []
-		self.set_type = set_type
-		self.seed = seed
 
 	def size(self):
 		return len(self.instances)

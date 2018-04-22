@@ -10,7 +10,7 @@ nas anotações do Jupyter Notebook).
 '''
 
 def initialize_data(set_type, set_size, seed = None):
-	data_set = DataSet(set_type, seed)
+	data_set = DataSet()
 	
 	if(seed != None):
 		np.random.seed(seed)

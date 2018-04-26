@@ -91,10 +91,13 @@ class NeuralNetwork:
 							  validation_data = val_data,
 							  shuffle = True )
 
-		if test_set_size > 0:
-			self.model.evaluate(x_test, y_test, 
-							    batch_size = mini_batch_size,
-							    verbose = 1)
+		if test_set_size > 0:	
+		
+			test_results = self.model.evaluate(x_test, y_test, 
+							    				batch_size = mini_batch_size,
+							    			    verbose = 1)
+			
+			print(test_results)
 		
 		x_axis_epoch = [i+1 for i in range(num_epoch)]	
 

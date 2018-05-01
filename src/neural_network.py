@@ -6,6 +6,7 @@ from keras import losses
 from keras import optimizers
 from keras import metrics
 from keras import regularizers
+from keras import optimizers
 
 class NeuralNetwork:
 	
@@ -19,8 +20,6 @@ class NeuralNetwork:
 	def __init__(self, input_size, layer_size_list, activation_function_list, reg = None, reg_param = 0.0):
 
 		self.layer_size_list = layer_size_list
-		self.learning_rate = 0.1
-		self.momentum = 0.0
 		self.confusion_matrix = [[]]
 		self.output = []
 
@@ -33,6 +32,7 @@ class NeuralNetwork:
 			kernel_reg = regularizers.l1_l2(reg_param)
 		else:
 			kernel_reg = None
+
 
 		self.model = Sequential()
 		self.model.add( Dense(units = layer_size_list[0], input_dim = input_size, kernel_regularizer = kernel_reg) )
@@ -55,8 +55,8 @@ class NeuralNetwork:
 	@data_set: conjunto de dados usado no treinamento;
 	@training_type: define se o treinamento é estocástico ("stochastic") ou por lote ("batch")
 	@num_epoch: número de épocas a serem utilizados no treinamento;
-	@learning_rade: taxa de aprendizagem para este treinamento;
-	@momentum: termo do momento a ser utilizado;
+	@lr_: taxa de aprendizagem para este treinamento;
+	@momentum_: termo do momento a ser utilizado;
 	@mini_batch_size: tamanho dos lotes para o treinamento usando mini-lote;
 	@tvt_ratio: lista que representa a proporção desejada entre os conjuntos de treinamento, validação e teste;
 	@type: define se a rede deve ser do tipo regressão ("reg") ou classificação ("class");
@@ -65,17 +65,22 @@ class NeuralNetwork:
 	def fit(self,
 			data_set,
 			training_type,
-			num_epoch = 0,
-			learning_rate = 0.1,
-			momentum = 0.0,
+			num_epoch = 0,	
 			mini_batch_size = 10,
 			tvt_ratio = [8, 2, 0],
 			type = "reg",
-			print_info = False):
+			print_info = False,
+			loss_ = "mean_squared_error",
+			opt = "sgd",
+			lr_ = 0.1,
+			momentum_ = 0.0,
+			decay_ = 0.0,
+			rho_ = 0.9,
+			epsilon_ = None,
+			beta_1_ = 0.9,
+			beta_2_ = 0.999,
+			schedule_decay_ = 0.004):
 		
-		self.learning_rate = learning_rate
-		self.momentum = momentum
-
 		# Definição do tamanho dos subconjuntos de treinamento, validação e teste com base na proporção definida
 		# no parâmetro tvt_ratio
 		tvt_sum = np.sum(tvt_ratio)
@@ -98,10 +103,29 @@ class NeuralNetwork:
 		mini_batch_size = 1 if training_type == "stochastic" else mini_batch_size
 		mini_batch_size = training_set_size if training_type == "batch" else mini_batch_size
 
+		# Otimizadores
+		
+		kernel_opt = None
+		if(opt == "sgd"):
+			kernel_opt = optimizers.SGD(decay = decay_, lr = lr_, momentum = momentum_)
+		elif(opt == "rmsprop"):
+			kernel_opt = optimizers.RMSprop(lr = lr_, rho = rho_, epsilon = epsilon_, decay = decay_)
+		elif(opt == "adagrad"):
+			kernel_opt = optimizers.Adagrad(lr = lr_, epsilon = epsilon_, decay = decay_)
+		elif(opt == "adadelta"):
+			kernel_opt = optimizers.Adadelta(lr = lr_, rho = rho_, epsilon = epsilon_, decay = decay_)
+		elif(opt == "adam"):
+			kernel_opt = optimizers.Adam(lr = lr_, beta_1 = beta_1_, beta_2 = beta_2_, epsilon = epsilon_, decay = decay_)
+		elif(opt == "adamax"):
+			kernel_opt = optimizers.Adamax(lr = lr_, beta_1 = beta_1_, beta_2 = beta_2_, epsilon = epsilon_, decay = decay_)
+		elif(opt == "nadam"):
+			kernel_opt = optimizers.Nadam(lr = lr_, beta_1 = beta_1_, beta_2 = beta_2_, epsilon = epsilon_, schedule_decay = schedule_decay_)
+	
+
 		# Executando a rede
 		
-		self.model.compile(loss = losses.mean_squared_error,
-						   optimizer = optimizers.SGD(lr = self.learning_rate, momentum = self.momentum),
+		self.model.compile(loss = loss_,
+						   optimizer = kernel_opt,
 						   metrics = met )
 
 		info = self.model.fit(x_train, y_train,

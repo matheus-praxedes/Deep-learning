@@ -5,6 +5,7 @@ from keras.layers import Dense
 from keras import losses
 from keras import optimizers
 from keras import metrics
+from keras import regularizers
 
 class NeuralNetwork:
 	
@@ -15,7 +16,7 @@ class NeuralNetwork:
 	@activation_function_list: lista com funções de ativação para cada camada;
 	@seed: seed usada na geração dos pesos dos neurônios.
 	'''
-	def __init__(self, input_size, layer_size_list, activation_function_list):
+	def __init__(self, input_size, layer_size_list, activation_function_list, reg = None, reg_param = 0.0):
 
 		self.layer_size_list = layer_size_list
 		self.learning_rate = 0.1
@@ -23,11 +24,21 @@ class NeuralNetwork:
 		self.confusion_matrix = [[]]
 		self.output = []
 
+		kernel_reg = None
+		if(reg == "l1"):
+			kernel_reg = regularizers.l1(reg_param)
+		elif(reg == "l2"):
+			kernel_reg = regularizers.l2(reg_param)
+		elif(reg == "l1_l2"):
+			kernel_reg = regularizers.l1_l2(reg_param)
+		else:
+			kernel_reg = None
+
 		self.model = Sequential()
-		self.model.add( Dense(units = layer_size_list[0], input_dim = input_size) )
+		self.model.add( Dense(units = layer_size_list[0], input_dim = input_size, kernel_regularizer = kernel_reg) )
 		self.model.add( activation_function_list[0] )
 		for i in range(1, len(layer_size_list)):
-			self.model.add( Dense(layer_size_list[i]) )
+			self.model.add( Dense(layer_size_list[i], kernel_regularizer = kernel_reg) )
 			self.model.add( activation_function_list[i] )
 
 	'''
@@ -51,7 +62,16 @@ class NeuralNetwork:
 	@type: define se a rede deve ser do tipo regressão ("reg") ou classificação ("class");
 	@print_info: define se informações devem ser exibidas durante o treinamento.
 	'''
-	def fit(self, data_set, training_type, num_epoch = 0, learning_rate = 0.1, momentum = 0.0, mini_batch_size = 10, tvt_ratio = [8, 2, 0], type = "reg", print_info = False):
+	def fit(self,
+			data_set,
+			training_type,
+			num_epoch = 0,
+			learning_rate = 0.1,
+			momentum = 0.0,
+			mini_batch_size = 10,
+			tvt_ratio = [8, 2, 0],
+			type = "reg",
+			print_info = False):
 		
 		self.learning_rate = learning_rate
 		self.momentum = momentum

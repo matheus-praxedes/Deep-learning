@@ -6,7 +6,7 @@ from keras import losses
 from keras import optimizers
 from keras import metrics
 from keras import regularizers
-from keras import optimizers
+from keras.layers import Dropout
 
 class NeuralNetwork:
 	
@@ -17,7 +17,7 @@ class NeuralNetwork:
 	@activation_function_list: lista com funções de ativação para cada camada;
 	@seed: seed usada na geração dos pesos dos neurônios.
 	'''
-	def __init__(self, input_size, layer_size_list, activation_function_list, reg = None, reg_param = 0.0):
+	def __init__(self, input_size, layer_size_list, activation_function_list, reg = None, reg_param = 0.0, dropout_rate = 0.0):
 
 		self.layer_size_list = layer_size_list
 		self.confusion_matrix = [[]]
@@ -38,6 +38,8 @@ class NeuralNetwork:
 		self.model.add( Dense(units = layer_size_list[0], input_dim = input_size, kernel_regularizer = kernel_reg) )
 		self.model.add( activation_function_list[0] )
 		for i in range(1, len(layer_size_list)):
+			if dropout_rate != 0.0:
+				self.model.add( Dropout(dropout_rate) )
 			self.model.add( Dense(layer_size_list[i], kernel_regularizer = kernel_reg) )
 			self.model.add( activation_function_list[i] )
 
@@ -141,6 +143,7 @@ class NeuralNetwork:
 							    				batch_size = mini_batch_size,
 							    			    verbose = 1)
 			
+			self.generateConfusionMatrix(x_test, y_test)
 			print(test_results)
 		
 		x_axis_epoch = [i+1 for i in range(num_epoch)]	
@@ -158,3 +161,39 @@ class NeuralNetwork:
 			else:
 				return [x_axis_epoch, 
 					   [1.0 - i for i in info.history['categorical_accuracy'] ] ]
+
+	
+	def generateConfusionMatrix(self, x_test, y_test):
+
+		self.confusion_matrix = [ [ 0 for x in y_test[0] ] for y in y_test[0] ]
+		num_outputs = len(y_test[0])
+
+		for input_, output_ in zip(x_test, y_test):
+			predict = self.classify(input_)
+			max_value = max(predict)
+			class_index = 0
+			correct_index = 0
+
+			for k in range(num_outputs):
+				if predict[k] == max_value:
+					class_index = k
+
+			for k in range(num_outputs):
+				if output_[k] == 1.0:
+					correct_index = k
+
+			self.confusion_matrix[correct_index][class_index] += 1
+
+	def printMatrix(self):
+
+		print()
+		for line in self.confusion_matrix:
+			print("| ", end = '')
+			for value in line:
+				print("{:3d} ".format(value), end = '')
+			print(" |")
+			
+
+
+
+			

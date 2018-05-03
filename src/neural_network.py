@@ -1,5 +1,7 @@
 import numpy as np
 np.random.seed(11403723)
+from tensorflow import set_random_seed
+set_random_seed(11403723)
 from keras.models import Sequential
 from keras.layers import Dense
 from keras import losses
@@ -17,11 +19,12 @@ class NeuralNetwork:
 	@activation_function_list: lista com funções de ativação para cada camada;
 	@seed: seed usada na geração dos pesos dos neurônios.
 	'''
-	def __init__(self, input_size, layer_size_list, activation_function_list, reg = None, reg_param = 0.0, dropout_rate = 0.0):
+	def __init__(self, input_size, layer_size_list, activation_function_list, reg = None, reg_param = 0.0, dropout = None):
 
 		self.layer_size_list = layer_size_list
 		self.confusion_matrix = [[]]
 		self.output = []
+		dropout = len(layer_size_list) * [0.0] if None else [0.0] + dropout
 
 		kernel_reg = None
 		if(reg == "l1"):
@@ -38,8 +41,8 @@ class NeuralNetwork:
 		self.model.add( Dense(units = layer_size_list[0], input_dim = input_size, kernel_regularizer = kernel_reg) )
 		self.model.add( activation_function_list[0] )
 		for i in range(1, len(layer_size_list)):
-			if dropout_rate != 0.0:
-				self.model.add( Dropout(dropout_rate) )
+			if dropout[i] != 0.0:
+				self.model.add( Dropout(dropout[i]) )
 			self.model.add( Dense(layer_size_list[i], kernel_regularizer = kernel_reg) )
 			self.model.add( activation_function_list[i] )
 

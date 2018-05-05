@@ -24,7 +24,7 @@ class NeuralNetwork:
 		self.layer_size_list = layer_size_list
 		self.confusion_matrix = [[]]
 		self.output = []
-		dropout = len(layer_size_list) * [0.0] if None else [0.0] + dropout
+		dropout = len(layer_size_list) * [0.0] if dropout == None else dropout
 
 		kernel_reg = None
 		if(reg == "l1"):
@@ -39,11 +39,13 @@ class NeuralNetwork:
 
 		self.model = Sequential()
 		self.model.add( Dense(units = layer_size_list[0], input_dim = input_size, kernel_regularizer = kernel_reg) )
+		if dropout[0] != 0.0:
+				self.model.add( Dropout(dropout[0]) )
 		self.model.add( activation_function_list[0] )
 		for i in range(1, len(layer_size_list)):
+			self.model.add( Dense(layer_size_list[i], kernel_regularizer = kernel_reg) )
 			if dropout[i] != 0.0:
 				self.model.add( Dropout(dropout[i]) )
-			self.model.add( Dense(layer_size_list[i], kernel_regularizer = kernel_reg) )
 			self.model.add( activation_function_list[i] )
 
 	'''
